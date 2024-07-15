@@ -1,0 +1,5 @@
+pip install django
+pip install SQQLAlchemy
+pip install django-mssql-backend
+pip install pyodbc
+pip install requests
