@@ -15,8 +15,7 @@
         }
     </style>
     <script>
-        function toggleColumn() {
-            const columnClass = 'deliverables-column';
+        function toggleColumn(columnClass) {
             const elements = document.getElementsByClassName(columnClass);
             for (let i = 0; i < elements.length; i++) {
                 elements[i].classList.toggle('hidden');
@@ -40,10 +39,24 @@
                 <label for="SponsorName">Sponsor Name:</label>
                 <input type="text" name="SponsorName" id="SponsorName" class="form-control mx-sm-2" value="{{ filters.SponsorName|default_if_none:'' }}">
             </div>
+            <div class="form-group">
+                <label for="Deliverables">Deliverables:</label>
+                <input type="text" name="Deliverables" id="Deliverables" class="form-control mx-sm-2" value="{{ filters.Deliverables|default_if_none:'' }}">
+            </div>
+            <div class="form-group">
+                <label for="TherapeuticAreas">Therapeutic Areas:</label>
+                <input type="text" name="TherapeuticAreas" id="TherapeuticAreas" class="form-control mx-sm-2" value="{{ filters.TherapeuticAreas|default_if_none:'' }}">
+            </div>
+            <div class="form-group">
+                <label for="Status">Status:</label>
+                <input type="text" name="Status" id="Status" class="form-control mx-sm-2" value="{{ filters.Status|default_if_none:'' }}">
+            </div>
             <button type="submit" class="btn btn-primary">Filter</button>
         </form>
         
-        <button class="btn btn-secondary mb-3" onclick="toggleColumn()">Show/Hide Deliverables</button>
+        <button class="btn btn-secondary mb-3" onclick="toggleColumn('deliverables-column')">Show/Hide Deliverables</button>
+        <button class="btn btn-secondary mb-3" onclick="toggleColumn('status-column')">Show/Hide Project Status</button>
+        <button class="btn btn-secondary mb-3" onclick="toggleColumn('therapeutic-areas-column')">Show/Hide Therapeutic Areas</button>
         
         <table class="table table-striped table-bordered">
             <thead class="thead-dark">
@@ -52,7 +65,8 @@
                     <th>Project Name</th>
                     <th>Sponsor Name</th>
                     <th class="deliverables-column">Deliverables</th>
-                    <th>Project Status</th>
+                    <th class="status-column">Project Status</th>
+                    <th class="therapeutic-areas-column">Therapeutic Areas</th>
                 </tr>
             </thead>
             <tbody>
@@ -62,7 +76,8 @@
                         <td>{{ item.project.projectname }}</td>
                         <td>{{ item.project.sponsorserial.sponsorname }}</td>
                         <td class="deliverables-column">{{ item.deliverables }}</td>
-                        <td>{{ item.status }}</td>
+                        <td class="status-column">{{ item.status }}</td>
+                        <td class="therapeutic-areas-column">{{ item.therapeutic_areas }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

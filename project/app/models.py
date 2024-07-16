@@ -180,19 +180,6 @@ class ProjectStatus(models.Model):
         unique_together = (("projectid", "keywordid"),)
 
 
-class ProjectTherapeuticArea(models.Model):
-    projectid = models.OneToOneField(
-        DeltekProjectID, models.DO_NOTHING, db_column="ProjectID", primary_key=True
-    )
-    keywordid = models.ForeignKey(
-        "TherapeuticAreaKeyword", models.DO_NOTHING, db_column="KeywordID"
-    )
-
-    class Meta:
-        managed = False
-        db_table = "ProjectTherapeuticArea"
-        unique_together = (("projectid", "keywordid"),)
-
 
 class QuestionnairesKeywords(models.Model):
     keywordid = models.AutoField(db_column="KeywordID", primary_key=True)
@@ -225,6 +212,19 @@ class RouteOfAdminKeyword(models.Model):
     class Meta:
         managed = False
         db_table = "RouteOfAdminKeyword"
+
+class ProjectTherapeuticArea(models.Model):
+    projectid = models.ForeignKey(
+    DeltekProjectID, models.DO_NOTHING, db_column="ProjectID", primary_key=True
+    )  # Field name made lowercase.
+    keywordid = models.ForeignKey(
+        "TherapeuticAreaKeyword", models.DO_NOTHING, db_column="KeywordID"
+    )
+
+    class Meta:
+        managed = False
+        db_table = "ProjectTherapeuticArea"
+        unique_together = (("projectid", "keywordid"),)
 
 
 class TherapeuticAreaKeyword(models.Model):
