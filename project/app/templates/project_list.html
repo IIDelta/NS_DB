@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project List</title>
+</head>
+<body>
+    <h1>Projects</h1>
+    <form method="get">
+        <input type="text" name="project_id" placeholder="Project ID">
+        <input type="text" name="project_name" placeholder="Project Name">
+        <input type="text" name="sponsor_name" placeholder="Sponsor Name">
+        <button type="submit">Search</button>
+    </form>
+    <a href="{% url 'project-create' %}">Add New Project</a>
+    <ul>
+        {% for project in projects %}
+            <li>
+                <a href="{% url 'project-detail' project.pk %}">{{ project.projectname }} ({{ project.projectid }})</a>
+                <a href="{% url 'project-edit' project.pk %}">Edit</a>
+                <a href="{% url 'project-delete' project.pk %}">Delete</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
