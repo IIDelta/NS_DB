@@ -2,7 +2,8 @@
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
-from .models import DeltekProjectID, Client
+from django.db.models import Prefetch
+from .models import DeltekProjectID, Client, ProjectDeliverables, ProjectStatus, ProjectStatusKeyword, DeliverablesKeyword
 from .forms import ProjectForm
 
 
@@ -13,39 +14,47 @@ class ClientListView(View):
 
 
 class ProjectListView(View):
-    template_name = "project_list.html"
-    paginate_by = 10  # Number of items per page
-
     def get(self, request):
-        form = ProjectForm(request.GET)
-        project_list = DeltekProjectID.objects.all()
+        project_id_filter = request.GET.get("ProjectID")
+        project_name_filter = request.GET.get("ProjectName")
+        sponsor_name_filter = request.GET.get("SponsorName")
 
-        if form.is_valid():
-            projectid = form.cleaned_data.get("projectid")
-            projectname = form.cleaned_data.get("projectname")
-            sponsorname = form.cleaned_data.get("sponsorname")
+        projects = DeltekProjectID.objects.all().prefetch_related(
+            Prefetch('projectdeliverables_set', queryset=ProjectDeliverables.objects.select_related('keywordid')),
+            Prefetch('projectstatus_set', queryset=ProjectStatus.objects.select_related('keywordid'))
+        )
 
-            if projectid:
-                project_list = project_list.filter(projectid__icontains=projectid)
-            if projectname:
-                project_list = project_list.filter(projectname__icontains=projectname)
-            if sponsorname:
-                project_list = project_list.filter(
-                    sponsorserial__sponsorname__icontains=sponsorname
-                )
+        if project_id_filter:
+            projects = projects.filter(projectid__icontains=project_id_filter)
+        if project_name_filter:
+            projects = projects.filter(projectname__icontains=project_name_filter)
+        if sponsor_name_filter:
+            projects = projects.filter(sponsorserial__sponsorname__icontains=sponsor_name_filter)
 
-        paginator = Paginator(project_list, self.paginate_by)
-        page = request.GET.get("page", 1)
+        project_list = []
+        for project in projects:
+            deliverables = ", ".join([deliverable.keywordid.keyword for deliverable in project.projectdeliverables_set.all()])
+            status = ", ".join([status.keywordid.keyword for status in project.projectstatus_set.all()])
+            project_list.append({
+                "project": project,
+                "deliverables": deliverables,
+                "status": status,
+            })
 
-        try:
-            projects = paginator.page(page)
-        except PageNotAnInteger:
-            projects = paginator.page(1)
-        except EmptyPage:
-            projects = paginator.page(paginator.num_pages)
+        paginator = Paginator(project_list, 50)  # Show 50 projects per page.
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
-        return render(request, self.template_name, {"projects": projects, "form": form})
+        context = {
+            "projects": page_obj,
+            "filters": {
+                "ProjectID": project_id_filter,
+                "ProjectName": project_name_filter,
+                "SponsorName": sponsor_name_filter,
+            }
+        }
 
+        return render(request, "project_list.html", context)
 
 class ProjectDetailView(View):
     def get(self, request, pk):
