@@ -1,9 +1,9 @@
 # app/views.py
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.db.models import Prefetch
-from .models import DeltekProjectID, Client, ProjectDeliverables, ProjectStatus, ProjectStatusKeyword, DeliverablesKeyword
+from .models import DeltekProjectID, Client, ProjectDeliverables, ProjectStatus
 from .forms import ProjectForm
 
 
@@ -56,46 +56,3 @@ class ProjectListView(View):
 
         return render(request, "project_list.html", context)
 
-class ProjectDetailView(View):
-    def get(self, request, pk):
-        project = get_object_or_404(DeltekProjectID, pk=pk)
-        return render(request, "project_detail.html", {"project": project})
-
-
-class ProjectCreateView(View):
-    def get(self, request):
-        form = ProjectForm()
-        return render(request, "project_form.html", {"form": form})
-
-    def post(self, request):
-        form = ProjectForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("project-list")
-        return render(request, "project_form.html", {"form": form})
-
-
-class ProjectUpdateView(View):
-    def get(self, request, pk):
-        project = get_object_or_404(DeltekProjectID, pk=pk)
-        form = ProjectForm(instance=project)
-        return render(request, "project_form.html", {"form": form})
-
-    def post(self, request, pk):
-        project = get_object_or_404(DeltekProjectID, pk=pk)
-        form = ProjectForm(request.POST, instance=project)
-        if form.is_valid():
-            form.save()
-            return redirect("project-list")
-        return render(request, "project_form.html", {"form": form})
-
-
-class ProjectDeleteView(View):
-    def get(self, request, pk):
-        project = get_object_or_404(DeltekProjectID, pk=pk)
-        return render(request, "project_confirm_delete.html", {"project": project})
-
-    def post(self, request, pk):
-        project = get_object_or_404(DeltekProjectID, pk=pk)
-        project.delete()
-        return redirect("project-list")
