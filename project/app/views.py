@@ -1,17 +1,9 @@
-from django.shortcuts import render, get_object_or_404
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
+# app/views.py
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
-from .models import (
-    Project,
-    ProjectStatus,
-    ProjectResponsibleParty,
-    ProjectDeliverables,
-    ProjectTherapeuticArea,
-    ProjectIngredientCategory,
-    ProjectIngredients,
-    Client,
-)
+from .models import DeltekProjectID, Client
+from .forms import ProjectForm
 
 
 class ClientListView(View):
@@ -21,61 +13,80 @@ class ClientListView(View):
 
 
 class ProjectListView(View):
+    template_name = "project_list.html"
+    paginate_by = 10  # Number of items per page
+
     def get(self, request):
-        projects = Project.objects.all()
-        project_id = request.GET.get("project_id")
-        project_name = request.GET.get("project_name")
-        sponsor_name = request.GET.get("sponsor_name")
+        form = ProjectForm(request.GET)
+        project_list = DeltekProjectID.objects.all()
 
-        if project_id:
-            projects = projects.filter(projectid__icontains=project_id)
-        if project_name:
-            projects = projects.filter(projectname__icontains=project_name)
-        if sponsor_name:
-            projects = projects.filter(sponsorname__icontains=sponsor_name)
+        if form.is_valid():
+            projectid = form.cleaned_data.get("projectid")
+            projectname = form.cleaned_data.get("projectname")
+            sponsorname = form.cleaned_data.get("sponsorname")
 
-        return render(request, "project_list.html", {"projects": projects})
+            if projectid:
+                project_list = project_list.filter(projectid__icontains=projectid)
+            if projectname:
+                project_list = project_list.filter(projectname__icontains=projectname)
+            if sponsorname:
+                project_list = project_list.filter(
+                    sponsorserial__sponsorname__icontains=sponsorname
+                )
+
+        paginator = Paginator(project_list, self.paginate_by)
+        page = request.GET.get("page", 1)
+
+        try:
+            projects = paginator.page(page)
+        except PageNotAnInteger:
+            projects = paginator.page(1)
+        except EmptyPage:
+            projects = paginator.page(paginator.num_pages)
+
+        return render(request, self.template_name, {"projects": projects, "form": form})
 
 
 class ProjectDetailView(View):
     def get(self, request, pk):
-        project = get_object_or_404(Project, pk=pk)
-        project_status = ProjectStatus.objects.filter(projectid=project)
-        responsible_party = ProjectResponsibleParty.objects.filter(projectid=project)
-        deliverables = ProjectDeliverables.objects.filter(projectid=project)
-        therapeutic_areas = ProjectTherapeuticArea.objects.filter(projectid=project)
-        ingredient_categories = ProjectIngredientCategory.objects.filter(
-            projectid=project
-        )
-        ingredients = ProjectIngredients.objects.filter(projectid=project)
-
-        context = {
-            "project": project,
-            "project_status": project_status,
-            "responsible_party": responsible_party,
-            "deliverables": deliverables,
-            "therapeutic_areas": therapeutic_areas,
-            "ingredient_categories": ingredient_categories,
-            "ingredients": ingredients,
-        }
-        return render(request, "project_detail.html", context)
+        project = get_object_or_404(DeltekProjectID, pk=pk)
+        return render(request, "project_detail.html", {"project": project})
 
 
-class ProjectCreateView(CreateView):
-    model = Project
-    fields = ["projectid", "projectname", "sponsorname"]
-    template_name = "project_form.html"
-    success_url = reverse_lazy("project-list")
+class ProjectCreateView(View):
+    def get(self, request):
+        form = ProjectForm()
+        return render(request, "project_form.html", {"form": form})
+
+    def post(self, request):
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("project-list")
+        return render(request, "project_form.html", {"form": form})
 
 
-class ProjectUpdateView(UpdateView):
-    model = Project
-    fields = ["projectid", "projectname", "sponsorname"]
-    template_name = "project_form.html"
-    success_url = reverse_lazy("project-list")
+class ProjectUpdateView(View):
+    def get(self, request, pk):
+        project = get_object_or_404(DeltekProjectID, pk=pk)
+        form = ProjectForm(instance=project)
+        return render(request, "project_form.html", {"form": form})
+
+    def post(self, request, pk):
+        project = get_object_or_404(DeltekProjectID, pk=pk)
+        form = ProjectForm(request.POST, instance=project)
+        if form.is_valid():
+            form.save()
+            return redirect("project-list")
+        return render(request, "project_form.html", {"form": form})
 
 
-class ProjectDeleteView(DeleteView):
-    model = Project
-    template_name = "project_confirm_delete.html"
-    success_url = reverse_lazy("project-list")
+class ProjectDeleteView(View):
+    def get(self, request, pk):
+        project = get_object_or_404(DeltekProjectID, pk=pk)
+        return render(request, "project_confirm_delete.html", {"project": project})
+
+    def post(self, request, pk):
+        project = get_object_or_404(DeltekProjectID, pk=pk)
+        project.delete()
+        return redirect("project-list")

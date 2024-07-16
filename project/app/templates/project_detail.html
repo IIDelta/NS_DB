@@ -1,55 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>Project Detail</title>
 </head>
 <body>
-    <h1>{{ project.projectname }} ({{ project.projectid }})</h1>
-    <p>Sponsor: {{ project.sponsorname }}</p>
-    
-    <h2>Project Status</h2>
-    <ul>
-        {% for status in project_status %}
-            <li>{{ status.status }}</li>
-        {% endfor %}
-    </ul>
-
-    <h2>Responsible Party</h2>
-    <ul>
-        {% for party in responsible_party %}
-            <li>{{ party.partyname }}</li>
-        {% endfor %}
-    </ul>
-
-    <h2>Deliverables</h2>
-    <ul>
-        {% for deliverable in deliverables %}
-            <li>{{ deliverable.name }}</li>
-        {% endfor %}
-    </ul>
-
-    <h2>Therapeutic Areas</h2>
-    <ul>
-        {% for area in therapeutic_areas %}
-            <li>{{ area.name }}</li>
-        {% endfor %}
-    </ul>
-
-    <h2>Ingredient Categories</h2>
-    <ul>
-        {% for category in ingredient_categories %}
-            <li>{{ category.name }}</li>
-        {% endfor %}
-    </ul>
-
-    <h2>Ingredients</h2>
-    <ul>
-        {% for ingredient in ingredients %}
-            <li>{{ ingredient.name }}</li>
-        {% endfor %}
-    </ul>
-
-    <a href="{% url 'project-list' %}">Back to Projects</a>
+    <h1>Project Detail</h1>
+    <p>Project ID: {{ project.projectid }}</p>
+    <p>Project Name: {{ project.projectname }}</p>
+    <p>Sponsor Name: {{ project.sponsorserial.sponsorname }}</p>
+    <a href="{% url 'project-update' project.pk %}">Edit</a>
+    <a href="{% url 'project-delete' project.pk %}">Delete</a>
+    <a href="{% url 'project-list' %}">Back to list</a>
 </body>
 </html>

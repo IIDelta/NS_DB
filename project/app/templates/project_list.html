@@ -1,26 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Project List</title>
-</head>
-<body>
-    <h1>Projects</h1>
-    <form method="get">
-        <input type="text" name="project_id" placeholder="Project ID">
-        <input type="text" name="project_name" placeholder="Project Name">
-        <input type="text" name="sponsor_name" placeholder="Sponsor Name">
-        <button type="submit">Search</button>
-    </form>
-    <a href="{% url 'project-create' %}">Add New Project</a>
-    <ul>
-        {% for project in projects %}
-            <li>
-                <a href="{% url 'project-detail' project.pk %}">{{ project.projectname }} ({{ project.projectid }})</a>
-                <a href="{% url 'project-edit' project.pk %}">Edit</a>
-                <a href="{% url 'project-delete' project.pk %}">Delete</a>
-            </li>
-        {% endfor %}
-    </ul>
-</body>
-</html>
+<!-- templates/project_list.html -->
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h2>Project List</h2>
+  <form method="get" class="filter-form">
+    <div class="form-group">
+      <label for="id_projectid">Project ID</label>
+      {{ form.projectid }}
+    </div>
+    <div class="form-group">
+      <label for="id_projectname">Project Name</label>
+      {{ form.projectname }}
+    </div>
+    <div class="form-group">
+      <label for="id_sponsorname">Sponsor Name</label>
+      {{ form.sponsorname }}
+    </div>
+    <button type="submit">Filter</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Project ID</th>
+        <th>Project Name</th>
+        <th>Sponsor Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for project in projects %}
+        <tr>
+          <td>{{ project.projectid }}</td>
+          <td>{{ project.projectname }}</td>
+          <td>{{ project.sponsorserial.sponsorname }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    <span class="step-links">
+      {% if projects.has_previous %}
+        <a href="?page=1{% if request.GET.projectid %}&projectid={{ request.GET.projectid }}{% endif %}{% if request.GET.projectname %}&projectname={{ request.GET.projectname }}{% endif %}{% if request.GET.sponsorname %}&sponsorname={{ request.GET.sponsorname }}{% endif %}">First</a>
+        <a href="?page={{ projects.previous_page_number }}{% if request.GET.projectid %}&projectid={{ request.GET.projectid }}{% endif %}{% if request.GET.projectname %}&projectname={{ request.GET.projectname }}{% endif %}{% if request.GET.sponsorname %}&sponsorname={{ request.GET.sponsorname }}{% endif %}">Previous</a>
+      {% endif %}
+
+      <span class="current">
+        Page {{ projects.number }} of {{ projects.paginator.num_pages }}.
+      </span>
+
+      {% if projects.has_next %}
+        <a href="?page={{ projects.next_page_number }}{% if request.GET.projectid %}&projectid={{ request.GET.projectid }}{% endif %}{% if request.GET.projectname %}&projectname={{ request.GET.projectname }}{% endif %}{% if request.GET.sponsorname %}&sponsorname={{ request.GET.sponsorname }}{% endif %}">Next</a>
+        <a href="?page={{ projects.paginator.num_pages }}{% if request.GET.projectid %}&projectid={{ request.GET.projectid }}{% endif %}{% if request.GET.projectname %}&projectname={{ request.GET.projectname }}{% endif %}{% if request.GET.sponsorname %}&sponsorname={{ request.GET.sponsorname }}{% endif %}">Last</a>
+      {% endif %}
+    </span>
+  </div>
+{% endblock %}

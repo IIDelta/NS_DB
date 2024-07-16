@@ -1,0 +1,36 @@
+<!-- base_generic.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{% block title %}My Site{% endblock %}</title>
+  {% block extra_head %}
+  <style>
+    .filter-form {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .filter-form .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-right: 10px;
+    }
+    .filter-form .form-group label {
+      margin-bottom: 5px;
+    }
+  </style>
+  {% endblock %}
+</head>
+<body>
+  <header>
+    <h1>My Site</h1>
+  </header>
+  <div class="content">
+    {% block content %}
+    {% endblock %}
+  </div>
+  <footer>
+    <p>My Footer</p>
+  </footer>
+</body>
+</html>
