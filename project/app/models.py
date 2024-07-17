@@ -22,6 +22,28 @@ class Client(models.Model):
         db_table = "Client"
 
 
+class ResponsiblePartyKeyword(models.Model):
+    keywordid = models.AutoField(db_column="KeywordID", primary_key=True)
+    keyword = models.CharField(
+        db_column="Keyword", max_length=255, db_collation="SQL_Latin1_General_CP1_CI_AS"
+    )
+
+    class Meta:
+        managed = False
+        db_table = "ResponsiblePartyKeyword"
+
+
+class RouteOfAdminKeyword(models.Model):
+    keywordid = models.AutoField(db_column="KeywordID", primary_key=True)
+    keyword = models.CharField(
+        db_column="Keyword", max_length=255, db_collation="SQL_Latin1_General_CP1_CI_AS"
+    )
+
+    class Meta:
+        managed = False
+        db_table = "RouteOfAdminKeyword"
+
+
 class DeliverablesKeyword(models.Model):
     keywordid = models.AutoField(
         db_column="KeywordID", primary_key=True
@@ -84,7 +106,7 @@ class IngredientCategoryKeyword(models.Model):
 
 
 class ProjectIngredientCategory(models.Model):
-    projectid = models.OneToOneField(
+    projectid = models.ForeignKey(
         DeltekProjectID, models.DO_NOTHING, db_column="ProjectID", primary_key=True
     )
     keywordid = models.ForeignKey(
@@ -98,7 +120,7 @@ class ProjectIngredientCategory(models.Model):
 
 
 class ProjectIngredients(models.Model):
-    projectid = models.OneToOneField(
+    projectid = models.ForeignKey(
         DeltekProjectID, models.DO_NOTHING, db_column="ProjectID", primary_key=True
     )
     keywordid = models.CharField(
@@ -114,7 +136,7 @@ class ProjectIngredients(models.Model):
 
 
 class ProjectQuestionnaires(models.Model):
-    projectid = models.OneToOneField(
+    projectid = models.ForeignKey(
         DeltekProjectID, models.DO_NOTHING, db_column="ProjectID", primary_key=True
     )
     keywordid = models.ForeignKey(
@@ -128,11 +150,11 @@ class ProjectQuestionnaires(models.Model):
 
 
 class ProjectResponsibleParty(models.Model):
-    projectid = models.OneToOneField(
+    projectid = models.ForeignKey(
         DeltekProjectID, models.DO_NOTHING, db_column="ProjectID", primary_key=True
     )
     keywordid = models.ForeignKey(
-        "ResponsiblePartyKeyword", models.DO_NOTHING, db_column="KeywordID"
+        ResponsiblePartyKeyword, models.DO_NOTHING, db_column="KeywordID"
     )
 
     class Meta:
@@ -142,11 +164,11 @@ class ProjectResponsibleParty(models.Model):
 
 
 class ProjectRouteOfAdmin(models.Model):
-    projectid = models.OneToOneField(
+    projectid = models.ForeignKey(
         DeltekProjectID, models.DO_NOTHING, db_column="ProjectID", primary_key=True
     )
     keywordid = models.ForeignKey(
-        "RouteOfAdminKeyword", models.DO_NOTHING, db_column="KeywordID"
+        RouteOfAdminKeyword, models.DO_NOTHING, db_column="KeywordID"
     )
 
     class Meta:
@@ -180,7 +202,6 @@ class ProjectStatus(models.Model):
         unique_together = (("projectid", "keywordid"),)
 
 
-
 class QuestionnairesKeywords(models.Model):
     keywordid = models.AutoField(db_column="KeywordID", primary_key=True)
     keyword = models.CharField(
@@ -192,30 +213,9 @@ class QuestionnairesKeywords(models.Model):
         db_table = "QuestionnairesKeywords"
 
 
-class ResponsiblePartyKeyword(models.Model):
-    keywordid = models.AutoField(db_column="KeywordID", primary_key=True)
-    keyword = models.CharField(
-        db_column="Keyword", max_length=255, db_collation="SQL_Latin1_General_CP1_CI_AS"
-    )
-
-    class Meta:
-        managed = False
-        db_table = "ResponsiblePartyKeyword"
-
-
-class RouteOfAdminKeyword(models.Model):
-    keywordid = models.AutoField(db_column="KeywordID", primary_key=True)
-    keyword = models.CharField(
-        db_column="Keyword", max_length=255, db_collation="SQL_Latin1_General_CP1_CI_AS"
-    )
-
-    class Meta:
-        managed = False
-        db_table = "RouteOfAdminKeyword"
-
 class ProjectTherapeuticArea(models.Model):
     projectid = models.ForeignKey(
-    DeltekProjectID, models.DO_NOTHING, db_column="ProjectID", primary_key=True
+        DeltekProjectID, models.DO_NOTHING, db_column="ProjectID", primary_key=True
     )  # Field name made lowercase.
     keywordid = models.ForeignKey(
         "TherapeuticAreaKeyword", models.DO_NOTHING, db_column="KeywordID"

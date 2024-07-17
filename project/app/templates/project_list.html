@@ -7,11 +7,22 @@
         .hidden {
             display: none;
         }
-        .form-inline .form-group {
-            margin-right: 10px;
+        .form-vertical .form-group {
+            margin-bottom: 15px;
         }
         .filter-container {
             margin-bottom: 20px;
+        }
+        .filter-container {
+            display: flex;
+        }
+        .filter-form {
+            flex: 1;
+            max-width: 250px;
+        }
+        .table-container {
+            flex: 3;
+            margin-left: 20px;
         }
     </style>
     <script>
@@ -26,80 +37,113 @@
 <body>
     <div class="container">
         <h1 class="my-4">Projects</h1>
-        <form method="get" class="form-inline filter-container">
-            <div class="form-group">
-                <label for="ProjectID">Project ID:</label>
-                <input type="text" name="ProjectID" id="ProjectID" class="form-control mx-sm-2" value="{{ filters.ProjectID|default_if_none:'' }}">
+        <div class="filter-container">
+            <form method="get" class="filter-form">
+                <div class="form-group">
+                    <label for="ProjectID">Project ID:</label>
+                    <input type="text" name="ProjectID" id="ProjectID" class="form-control" value="{{ filters.ProjectID|default_if_none:'' }}">
+                </div>
+                <div class="form-group">
+                    <label for="ProjectName">Project Name:</label>
+                    <input type="text" name="ProjectName" id="ProjectName" class="form-control" value="{{ filters.ProjectName|default_if_none:'' }}">
+                </div>
+                <div class="form-group">
+                    <label for="SponsorName">Sponsor Name:</label>
+                    <input type="text" name="SponsorName" id="SponsorName" class="form-control" value="{{ filters.SponsorName|default_if_none:'' }}">
+                </div>
+                <div class="form-group">
+                    <label for="Deliverables">Deliverables:</label>
+                    <input type="text" name="Deliverables" id="Deliverables" class="form-control" value="{{ filters.Deliverables|default_if_none:'' }}">
+                </div>
+                <div class="form-group">
+                    <label for="TherapeuticAreas">Therapeutic Areas:</label>
+                    <input type="text" name="TherapeuticAreas" id="TherapeuticAreas" class="form-control" value="{{ filters.TherapeuticAreas|default_if_none:'' }}">
+                </div>
+                <div class="form-group">
+                    <label for="Status">Status:</label>
+                    <input type="text" name="Status" id="Status" class="form-control" value="{{ filters.Status|default_if_none:'' }}">
+                </div>
+                <div class="form-group">
+                    <label for="IngredientCategories">Ingredient Categories:</label>
+                    <input type="text" name="IngredientCategories" id="IngredientCategories" class="form-control" value="{{ filters.IngredientCategories|default_if_none:'' }}">
+                </div>
+                <div class="form-group">
+                    <label for="Ingredients">Ingredients:</label>
+                    <input type="text" name="Ingredients" id="Ingredients" class="form-control" value="{{ filters.Ingredients|default_if_none:'' }}">
+                </div>
+                <div class="form-group">
+                    <label for="ResponsibleParty">Responsible Party:</label>
+                    <input type="text" name="ResponsibleParty" id="ResponsibleParty" class="form-control" value="{{ filters.ResponsibleParty|default_if_none:'' }}">
+                </div>
+                <div class="form-group">
+                    <label for="RouteOfAdmin">Route of Admin:</label>
+                    <input type="text" name="RouteOfAdmin" id="RouteOfAdmin" class="form-control" value="{{ filters.RouteOfAdmin|default_if_none:'' }}">
+                </div>
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </form>
+
+            <div class="table-container">
+                <button class="btn btn-secondary mb-3" onclick="toggleColumn('deliverables-column')">Show/Hide Deliverables</button>
+                <button class="btn btn-secondary mb-3" onclick="toggleColumn('status-column')">Show/Hide Project Status</button>
+                <button class="btn btn-secondary mb-3" onclick="toggleColumn('therapeutic-areas-column')">Show/Hide Therapeutic Areas</button>
+                <button class="btn btn-secondary mb-3" onclick="toggleColumn('ingredient-categories-column')">Show/Hide Ingredient Category</button>
+                <button class="btn btn-secondary mb-3" onclick="toggleColumn('ingredients-column')">Show/Hide Ingredients</button>
+                <button class="btn btn-secondary mb-3" onclick="toggleColumn('responsible-party-column')">Show/Hide Responsible Party</button>
+                <button class="btn btn-secondary mb-3" onclick="toggleColumn('route-of-admin-column')">Show/Hide Route of Admin</button>
+
+                <table class="table table-striped table-bordered">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Project ID</th>
+                            <th>Project Name</th>
+                            <th>Sponsor Name</th>
+                            <th class="deliverables-column">Deliverables</th>
+                            <th class="status-column">Project Status</th>
+                            <th class="therapeutic-areas-column">Therapeutic Areas</th>
+                            <th class="ingredient-categories-column">Ingredient Categories</th> 
+                            <th class="ingredients-column">Ingredients</th>
+                            <th class="responsible-party-column">Responsible Party</th>
+                            <th class="route-of-admin-column">Route of Admin</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in projects %}
+                            <tr>
+                                <td>{{ item.project.projectid }}</td>
+                                <td>{{ item.project.projectname }}</td>
+                                <td>{{ item.project.sponsorserial.sponsorname }}</td>
+                                <td class="deliverables-column">{{ item.deliverables }}</td>
+                                <td class="status-column">{{ item.status }}</td>
+                                <td class="therapeutic-areas-column">{{ item.therapeutic_areas }}</td>
+                                <td class="ingredient-categories-column">{{ item.ingredient_categories }}</td>
+                                <td class="ingredients-column">{{ item.ingredients }}</td>
+                                <td class="responsible-party-column">{{ item.responsible_party }}</td>
+                                <td class="route-of-admin-column">{{ item.route_of_admin }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <nav>
+                    <ul class="pagination">
+                        {% if projects.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
+                            <li class="page-item"><a class="page-link" href="?page={{ projects.previous_page_number }}">Previous</a></li>
+                        {% endif %}
+                    
+                        <li class="page-item disabled"><span class="page-link">Page {{ projects.number }} of {{ projects.paginator.num_pages }}</span></li>
+                    
+                        {% if projects.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ projects.next_page_number }}">Next</a></li>
+                            <li class="page-item"><a class="page-link" href="?page={{ projects.paginator.num_pages }}">Last &raquo;</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
             </div>
-            <div class="form-group">
-                <label for="ProjectName">Project Name:</label>
-                <input type="text" name="ProjectName" id="ProjectName" class="form-control mx-sm-2" value="{{ filters.ProjectName|default_if_none:'' }}">
-            </div>
-            <div class="form-group">
-                <label for="SponsorName">Sponsor Name:</label>
-                <input type="text" name="SponsorName" id="SponsorName" class="form-control mx-sm-2" value="{{ filters.SponsorName|default_if_none:'' }}">
-            </div>
-            <div class="form-group">
-                <label for="Deliverables">Deliverables:</label>
-                <input type="text" name="Deliverables" id="Deliverables" class="form-control mx-sm-2" value="{{ filters.Deliverables|default_if_none:'' }}">
-            </div>
-            <div class="form-group">
-                <label for="TherapeuticAreas">Therapeutic Areas:</label>
-                <input type="text" name="TherapeuticAreas" id="TherapeuticAreas" class="form-control mx-sm-2" value="{{ filters.TherapeuticAreas|default_if_none:'' }}">
-            </div>
-            <div class="form-group">
-                <label for="Status">Status:</label>
-                <input type="text" name="Status" id="Status" class="form-control mx-sm-2" value="{{ filters.Status|default_if_none:'' }}">
-            </div>
-            <button type="submit" class="btn btn-primary">Filter</button>
-        </form>
-        
-        <button class="btn btn-secondary mb-3" onclick="toggleColumn('deliverables-column')">Show/Hide Deliverables</button>
-        <button class="btn btn-secondary mb-3" onclick="toggleColumn('status-column')">Show/Hide Project Status</button>
-        <button class="btn btn-secondary mb-3" onclick="toggleColumn('therapeutic-areas-column')">Show/Hide Therapeutic Areas</button>
-        
-        <table class="table table-striped table-bordered">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Project ID</th>
-                    <th>Project Name</th>
-                    <th>Sponsor Name</th>
-                    <th class="deliverables-column">Deliverables</th>
-                    <th class="status-column">Project Status</th>
-                    <th class="therapeutic-areas-column">Therapeutic Areas</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in projects %}
-                    <tr>
-                        <td>{{ item.project.projectid }}</td>
-                        <td>{{ item.project.projectname }}</td>
-                        <td>{{ item.project.sponsorserial.sponsorname }}</td>
-                        <td class="deliverables-column">{{ item.deliverables }}</td>
-                        <td class="status-column">{{ item.status }}</td>
-                        <td class="therapeutic-areas-column">{{ item.therapeutic_areas }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        
-        <nav>
-            <ul class="pagination">
-                {% if projects.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
-                    <li class="page-item"><a class="page-link" href="?page={{ projects.previous_page_number }}">Previous</a></li>
-                {% endif %}
-            
-                <li class="page-item disabled"><span class="page-link">Page {{ projects.number }} of {{ projects.paginator.num_pages }}</span></li>
-            
-                {% if projects.has_next %}
-                    <li class="page-item"><a class="page-link" href="?page={{ projects.next_page_number }}">Next</a></li>
-                    <li class="page-item"><a class="page-link" href="?page={{ projects.paginator.num_pages }}">Last &raquo;</a></li>
-                {% endif %}
-            </ul>
-        </nav>
+        </div>
     </div>
-    
+
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
