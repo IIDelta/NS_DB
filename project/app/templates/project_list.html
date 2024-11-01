@@ -166,10 +166,10 @@
                         <td class="deliverables-column">{{ item.deliverables }}
                             <select id="deliverables-dropdown-{{ project.projectid }}" multiple onchange="updateDeliverables('{{ project.projectid }}')">
                                 {% for deliverable in deliverable_keywords %}
-                                <option value="{{ deliverable.keywordid }}"
-                                    {% if deliverable in project.projectdeliverables_set.all %}selected{% endif %}>
-                                    {{ deliverable.keyword }}
-                                </option>
+                                    <option value="{{ deliverable.keywordid }}"
+                                        {% if deliverable.keywordid in project.selected_deliverable_ids %}selected{% endif %}>
+                                        {{ deliverable.keyword }}
+                                    </option>
                                 {% endfor %}
                             </select>
                         </td>

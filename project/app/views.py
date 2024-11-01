@@ -38,6 +38,9 @@ class ProjectListView(View):
             "RouteOfAdmin": request.GET.get("RouteOfAdmin"),
         }
 
+        deliverable_keywords = DeliverablesKeyword.objects.all()
+
+
         # Query projects with prefetching for related fields
         projects = DeltekProjectID.objects.all().prefetch_related(
             Prefetch("projectdeliverables_set", queryset=ProjectDeliverables.objects.select_related("keywordid")),
@@ -49,8 +52,11 @@ class ProjectListView(View):
             Prefetch("projectrouteofadmin_set", queryset=ProjectRouteofAdmin.objects.select_related("keywordid")),
         )
 
-        # Get all possible status keywords for the dropdown
-        status_keywords = ProjectStatusKeyword.objects.all()
+        # Add the list of deliverables to each project in the queryset
+        for project in projects:
+            project.selected_deliverable_ids = [
+                deliverable.keywordid_id for deliverable in project.projectdeliverables_set.all()
+            ]
 
         # Apply filters
         if filters["ProjectID"]:
@@ -91,6 +97,8 @@ class ProjectListView(View):
             "ingredient_category_keywords": IngredientCategoryKeyword.objects.all(),
             "responsible_party_keywords": ResponsiblePartyKeyword.objects.all(),
             "route_of_admin_keywords": RouteofAdminKeyword.objects.all(),
+            "deliverable_keywords": deliverable_keywords,
+
         }
 
         return render(request, "project_list.html", context)
