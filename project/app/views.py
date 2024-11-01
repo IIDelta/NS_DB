@@ -19,6 +19,8 @@ from .models import (
     ResponsiblePartyKeyword,
     RouteofAdminKeyword,
 )
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 class ProjectListView(View):
     def get(self, request):
@@ -46,6 +48,9 @@ class ProjectListView(View):
             Prefetch("projectresponsibleparty_set", queryset=ProjectResponsibleParty.objects.select_related("keywordid")),
             Prefetch("projectrouteofadmin_set", queryset=ProjectRouteofAdmin.objects.select_related("keywordid")),
         )
+
+        # Get all possible status keywords for the dropdown
+        status_keywords = ProjectStatusKeyword.objects.all()
 
         # Apply filters
         if filters["ProjectID"]:
@@ -164,21 +169,35 @@ class ProjectListView(View):
             except Exception as e:
                 return JsonResponse({"status": "error", "message": str(e)})
 
-    def update_project_status(request):
-            if request.method == "POST":
-                project_id = request.POST.get("project_id")
-                keyword_id = request.POST.get("keyword_id")
+
+
+@csrf_exempt
+def update_project_status(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            project_id = data.get('project_id')
+            keyword_id = data.get('keyword_id')
+
+            # Check if project_id and keyword_id are provided
+            if not project_id or not keyword_id:
+                return JsonResponse({"error": "Missing project_id or keyword_id"}, status=400)
+
+            # Update the project status here (replace with your actual logic)
+            project_status = ProjectStatus.objects.get(projectid=project_id)
+            project_status.keywordid_id = keyword_id  # or however your foreign key is set up
+            project_status.save()
+
+            return JsonResponse({"status": "success", "message": "Status updated successfully"})
+
+        except ProjectStatus.DoesNotExist:
+            return JsonResponse({"error": "Project status not found"}, status=404)
+        except Exception as e:
+            # Log the error if necessary
+            print("Error:", e)
+            return JsonResponse({"error": "An error occurred"}, status=500)
+    else:
+        return JsonResponse({"error": "Invalid request method"}, status=405)
                 
-                try:
-                    project = DeltekProjectID.objects.get(pk=project_id)
-                    keyword = ProjectStatusKeyword.objects.get(pk=keyword_id)
-                    
-                    # Update or create the project status entry
-                    ProjectStatus.objects.update_or_create(
-                        projectid=project, defaults={"keywordid": keyword}
-                    )
-                    
-                    return JsonResponse({"status": "success", "keyword": keyword.keyword})
-                
-                except Exception as e:
-                    return JsonResponse({"status": "error", "message": str(e)})
+
+

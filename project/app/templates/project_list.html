@@ -38,6 +38,11 @@
             display: table;
             clear: both;
         }
+        select {
+            width: 100px; /* Adjust as needed */
+            max-width: 100%; /* Allow it to expand */
+        }
+
     </style>
     <script>
         function toggleColumn(columnClass) {
@@ -159,7 +164,18 @@
                         <td>{{ project.projectname }}</td>
                         <td>{{ project.sponsorserial.sponsorname }}</td>
                         <td class="deliverables-column">{{ item.deliverables }}</td>
-                        <td class="status-column">{{ item.status }}</td>
+                        <td class="status-column">{{ item.status }}
+                            <select id="status-dropdown-{{ project.projectid }}" onchange="updateStatus('{{ project.projectid }}')">
+                                <option value="">None</option> <!-- Displayed when no status is assigned -->
+                                {% for status in status_keywords %}
+                                    <option value="{{ status.keywordid }}"
+                                        {% if project.projectstatus_set.first and project.projectstatus_set.first.keywordid_id == status.keywordid %}selected{% endif %}>
+                                        {{ status.keyword }} <!-- Ensure 'status.statusname' is the correct field name -->
+                                    </option>
+                                {% endfor %}
+                            </select>
+                                          
+                        </td>
                         <td class="therapeutic-areas-column">{{ item.therapeutic_areas }}</td>
                         <td class="ingredient-categories-column">{{ item.ingredient_categories }}</td>
                         <td class="ingredients-column">{{ item.ingredients }}</td>
@@ -261,6 +277,55 @@
             }
         });
     }
+</script>
+<script>
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function updateStatus(projectId) {
+        const dropdown = document.getElementById(`status-dropdown-${projectId}`);
+        const keywordId = dropdown.value;
+
+        fetch(`/update-project-status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                keyword_id: keywordId
+            })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            console.log("Status updated successfully:", data);
+        })
+        .catch(error => {
+            console.error("Error updating status:", error);
+        });
+    }
+
+
+
+
 </script>
 
 </body>
