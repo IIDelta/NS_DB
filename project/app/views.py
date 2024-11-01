@@ -198,6 +198,46 @@ def update_project_status(request):
             return JsonResponse({"error": "An error occurred"}, status=500)
     else:
         return JsonResponse({"error": "Invalid request method"}, status=405)
-                
 
+@csrf_exempt
+def update_deliverables(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)  # Parse JSON data
+            project_id = data.get("project_id")
+            deliverable_ids = data.get("deliverable_ids", [])
 
+            # Debugging information
+            print("Received project_id:", project_id)
+            print("Received deliverable_ids:", deliverable_ids)
+
+            # Validate project_id and deliverable_ids
+            if not project_id or not isinstance(deliverable_ids, list):
+                print("Invalid data format")
+                return JsonResponse({"error": "Invalid data format"}, status=400)
+
+            # Check if project exists
+            try:
+                project = DeltekProjectID.objects.get(pk=project_id)
+            except DeltekProjectID.DoesNotExist:
+                print("Project not found")
+                return JsonResponse({"error": "Project not found"}, status=404)
+
+            # Clear existing deliverables for the project
+            ProjectDeliverables.objects.filter(projectid=project).delete()
+
+            # Add new deliverables
+            for deliverable_id in deliverable_ids:
+                try:
+                    deliverable = DeliverablesKeyword.objects.get(pk=deliverable_id)
+                    ProjectDeliverables.objects.create(projectid=project, keywordid=deliverable)
+                except DeliverablesKeyword.DoesNotExist:
+                    print(f"Deliverable with id {deliverable_id} not found")
+                    return JsonResponse({"error": f"Deliverable with id {deliverable_id} not found"}, status=404)
+
+            print("Deliverables updated successfully")
+            return JsonResponse({"status": "success", "message": "Deliverables updated successfully"})
+        
+        except Exception as e:
+            print("Error:", str(e))
+            return JsonResponse({"error": str(e)}, status=500)

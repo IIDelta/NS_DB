@@ -39,7 +39,7 @@
             clear: both;
         }
         select {
-            width: 100px; /* Adjust as needed */
+            width: 200px; /* Adjust as needed */
             max-width: 100%; /* Allow it to expand */
         }
 
@@ -163,7 +163,16 @@
                         <td>{{ project.projectid }}</td>
                         <td>{{ project.projectname }}</td>
                         <td>{{ project.sponsorserial.sponsorname }}</td>
-                        <td class="deliverables-column">{{ item.deliverables }}</td>
+                        <td class="deliverables-column">{{ item.deliverables }}
+                            <select id="deliverables-dropdown-{{ project.projectid }}" multiple onchange="updateDeliverables('{{ project.projectid }}')">
+                                {% for deliverable in deliverable_keywords %}
+                                <option value="{{ deliverable.keywordid }}"
+                                    {% if deliverable in project.projectdeliverables_set.all %}selected{% endif %}>
+                                    {{ deliverable.keyword }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
                         <td class="status-column">{{ item.status }}
                             <select id="status-dropdown-{{ project.projectid }}" onchange="updateStatus('{{ project.projectid }}')">
                                 <option value=""></option> <!-- Displayed when no status is assigned -->
@@ -286,8 +295,7 @@
             const cookies = document.cookie.split(';');
             for (let i = 0; i < cookies.length; i++) {
                 const cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                if (cookie.startsWith(name + '=')) {
                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
                 }
@@ -295,6 +303,7 @@
         }
         return cookieValue;
     }
+
 
     function updateStatus(projectId) {
         const dropdown = document.getElementById(`status-dropdown-${projectId}`);
@@ -322,6 +331,39 @@
             console.error("Error updating status:", error);
         });
     }
+
+    function updateDeliverables(projectId) {
+        const selectElement = document.getElementById(`deliverables-dropdown-${projectId}`);
+        const selectedOptions = Array.from(selectElement.selectedOptions).map(option => option.value);
+
+        console.log("Project ID:", projectId);
+        console.log("Selected Deliverable IDs:", selectedOptions);
+
+        fetch("/update-deliverables/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")  // Ensure this function exists and works
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                deliverable_ids: selectedOptions
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Deliverables updated successfully", data);
+        })
+        .catch(error => {
+            console.error("Error updating deliverables:", error);
+        });
+    }
+
 
 
 
