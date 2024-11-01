@@ -2,179 +2,183 @@ from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.views import View
 from django.db.models import Prefetch
+from django.http import JsonResponse
 from .models import (
     DeltekProjectID,
-    Client,
     ProjectDeliverables,
     ProjectStatus,
     ProjectTherapeuticArea,
     ProjectIngredientCategory,
     ProjectIngredients,
     ProjectResponsibleParty,
-    ProjectRouteOfAdmin,
+    ProjectRouteofAdmin,
+    DeliverablesKeyword,
+    ProjectStatusKeyword,
+    TherapeuticAreaKeyword,
+    IngredientCategoryKeyword,
+    ResponsiblePartyKeyword,
+    RouteofAdminKeyword,
 )
-
-
-class ClientListView(View):
-    def get(self, request):
-        clients = Client.objects.all()
-        return render(request, "client_list.html", {"clients": clients})
-
 
 class ProjectListView(View):
     def get(self, request):
-        project_id_filter = request.GET.get("ProjectID")
-        project_name_filter = request.GET.get("ProjectName")
-        sponsor_name_filter = request.GET.get("SponsorName")
-        deliverables_filter = request.GET.get("Deliverables")
-        status_filter = request.GET.get("Status")
-        therapeutic_area_filter = request.GET.get("TherapeuticAreas")
-        ingredient_category_filter = request.GET.get("IngredientCategories")
-        ingredient_filter = request.GET.get("Ingredients")
-        responsible_party_filter = request.GET.get("ResponsibleParty")
-        route_of_admin_filter = request.GET.get("RouteOfAdmin")
+        # Filter parameters
+        filters = {
+            "ProjectID": request.GET.get("ProjectID"),
+            "ProjectName": request.GET.get("ProjectName"),
+            "SponsorName": request.GET.get("SponsorName"),
+            "Deliverables": request.GET.get("Deliverables"),
+            "Status": request.GET.get("Status"),
+            "TherapeuticAreas": request.GET.get("TherapeuticAreas"),
+            "IngredientCategories": request.GET.get("IngredientCategories"),
+            "Ingredients": request.GET.get("Ingredients"),
+            "ResponsibleParty": request.GET.get("ResponsibleParty"),
+            "RouteOfAdmin": request.GET.get("RouteOfAdmin"),
+        }
 
+        # Query projects with prefetching for related fields
         projects = DeltekProjectID.objects.all().prefetch_related(
-            Prefetch(
-                "projectdeliverables_set",
-                queryset=ProjectDeliverables.objects.select_related("keywordid"),
-            ),
-            Prefetch(
-                "projectstatus_set",
-                queryset=ProjectStatus.objects.select_related("keywordid"),
-            ),
-            Prefetch(
-                "projecttherapeuticarea_set",
-                queryset=ProjectTherapeuticArea.objects.select_related("keywordid"),
-            ),
-            Prefetch(
-                "projectingredientcategory_set",
-                queryset=ProjectIngredientCategory.objects.select_related("keywordid"),
-            ),
-            Prefetch(
-                "projectingredients_set",
-                queryset=ProjectIngredients.objects.all(),
-            ),
-            Prefetch(
-                "projectresponsibleparty_set",
-                queryset=ProjectResponsibleParty.objects.select_related("keywordid"),
-            ),
-            Prefetch(
-                "projectrouteofadmin_set",
-                queryset=ProjectRouteOfAdmin.objects.select_related("keywordid"),
-            ),
+            Prefetch("projectdeliverables_set", queryset=ProjectDeliverables.objects.select_related("keywordid")),
+            Prefetch("projectstatus_set", queryset=ProjectStatus.objects.select_related("keywordid")),
+            Prefetch("projecttherapeuticarea_set", queryset=ProjectTherapeuticArea.objects.select_related("keywordid")),
+            Prefetch("projectingredientcategory_set", queryset=ProjectIngredientCategory.objects.select_related("keywordid")),
+            Prefetch("projectingredients_set", queryset=ProjectIngredients.objects.all()),
+            Prefetch("projectresponsibleparty_set", queryset=ProjectResponsibleParty.objects.select_related("keywordid")),
+            Prefetch("projectrouteofadmin_set", queryset=ProjectRouteofAdmin.objects.select_related("keywordid")),
         )
 
-        if project_id_filter:
-            projects = projects.filter(projectid__icontains=project_id_filter)
-        if project_name_filter:
-            projects = projects.filter(projectname__icontains=project_name_filter)
-        if sponsor_name_filter:
-            projects = projects.filter(
-                sponsorserial__sponsorname__icontains=sponsor_name_filter
-            )
-        if deliverables_filter:
-            projects = projects.filter(
-                projectdeliverables__keywordid__keyword__icontains=deliverables_filter
-            ).distinct()
-        if status_filter:
-            projects = projects.filter(
-                projectstatus__keywordid__keyword__icontains=status_filter
-            )
-        if therapeutic_area_filter:
-            projects = projects.filter(
-                projecttherapeuticarea__keywordid__keyword__icontains=therapeutic_area_filter
-            )
-        if ingredient_category_filter:
-            projects = projects.filter(
-                projectingredientcategory__keywordid__keyword__icontains=ingredient_category_filter
-            )
-        if ingredient_filter:
-            projects = projects.filter(
-                projectingredients__keywordid__icontains=ingredient_filter
-            )
-        if responsible_party_filter:
-            projects = projects.filter(
-                projectresponsibleparty__keywordid__keyword__icontains=responsible_party_filter
-            )
-        if route_of_admin_filter:
-            projects = projects.filter(
-                projectrouteofadmin__keywordid__keyword__icontains=route_of_admin_filter
-            )
+        # Apply filters
+        if filters["ProjectID"]:
+            projects = projects.filter(projectid__icontains=filters["ProjectID"])
+        if filters["ProjectName"]:
+            projects = projects.filter(projectname__icontains=filters["ProjectName"])
+        if filters["SponsorName"]:
+            projects = projects.filter(sponsorserial__sponsorname__icontains=filters["SponsorName"])
+        if filters["Deliverables"]:
+            projects = projects.filter(projectdeliverables__keywordid__keyword__icontains=filters["Deliverables"]).distinct()
+        if filters["Status"]:
+            projects = projects.filter(projectstatus__keywordid__keyword__icontains=filters["Status"])
+        if filters["TherapeuticAreas"]:
+            projects = projects.filter(projecttherapeuticarea__keywordid__keyword__icontains=filters["TherapeuticAreas"])
+        if filters["IngredientCategories"]:
+            projects = projects.filter(projectingredientcategory__keywordid__keyword__icontains=filters["IngredientCategories"])
+        if filters["Ingredients"]:
+            projects = projects.filter(projectingredients__keywordid__icontains=filters["Ingredients"])
+        if filters["ResponsibleParty"]:
+            projects = projects.filter(projectresponsibleparty__keywordid__keyword__icontains=filters["ResponsibleParty"])
+        if filters["RouteOfAdmin"]:
+            projects = projects.filter(projectrouteofadmin__keywordid__keyword__icontains=filters["RouteOfAdmin"])
 
-        project_list = []
-        for project in projects:
-            deliverables = ", ".join(
-                [
-                    deliverable.keywordid.keyword
-                    for deliverable in project.projectdeliverables_set.all()
-                ]
-            )
-            therapeutic_areas = ", ".join(
-                [
-                    therapeuticarea.keywordid.keyword
-                    for therapeuticarea in project.projecttherapeuticarea_set.all()
-                ]
-            )
-            status = ", ".join(
-                [status.keywordid.keyword for status in project.projectstatus_set.all()]
-            )
-            ingredient_categories = ", ".join(
-                [
-                    ingredient_categories.keywordid.keyword
-                    for ingredient_categories in project.projectingredientcategory_set.all()
-                ]
-            )
-            ingredients = ", ".join(
-                [
-                    ingredient.keywordid
-                    for ingredient in project.projectingredients_set.all()
-                ]
-            )
-            responsible_party = ", ".join(
-                [
-                    responsible_party.keywordid.keyword
-                    for responsible_party in project.projectresponsibleparty_set.all()
-                ]
-            )
-            route_of_admin = ", ".join(
-                [
-                    route_of_admin.keywordid.keyword
-                    for route_of_admin in project.projectrouteofadmin_set.all()
-                ]
-            )
 
-            project_list.append(
-                {
-                    "project": project,
-                    "deliverables": deliverables,
-                    "status": status,
-                    "therapeutic_areas": therapeutic_areas,
-                    "ingredient_categories": ingredient_categories,
-                    "ingredients": ingredients,
-                    "responsible_party": responsible_party,
-                    "route_of_admin": route_of_admin,
-                }
-            )
 
-        paginator = Paginator(project_list, 50)  # Show 50 projects per page.
+        # Pagination
+        paginator = Paginator(projects, 10)  # Show 10 projects per page
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
 
+        # Prepare context with dropdown options for each category
         context = {
             "projects": page_obj,
-            "filters": {
-                "ProjectID": project_id_filter,
-                "ProjectName": project_name_filter,
-                "SponsorName": sponsor_name_filter,
-                "Deliverables": deliverables_filter,
-                "TherapeuticAreas": therapeutic_area_filter,
-                "Status": status_filter,
-                "IngredientCategories": ingredient_category_filter,
-                "Ingredients": ingredient_filter,
-                "ResponsibleParty": responsible_party_filter,
-                "RouteOfAdmin": route_of_admin_filter,
-            },
+            "filters": filters,
+            "status_keywords": ProjectStatusKeyword.objects.all(),
+            "deliverable_keywords": DeliverablesKeyword.objects.all(),
+            "therapeutic_area_keywords": TherapeuticAreaKeyword.objects.all(),
+            "ingredient_category_keywords": IngredientCategoryKeyword.objects.all(),
+            "responsible_party_keywords": ResponsiblePartyKeyword.objects.all(),
+            "route_of_admin_keywords": RouteofAdminKeyword.objects.all(),
         }
 
         return render(request, "project_list.html", context)
+
+ # AJAX endpoint to add a keyword
+    def add_keyword(request):
+        if request.method == "POST":
+            project_id = request.POST.get("project_id")
+            keyword_id = request.POST.get("keyword_id")
+            keyword_type = request.POST.get("keyword_type")
+
+            # Determine the keyword type and add the keyword
+            try:
+                project = DeltekProjectID.objects.get(pk=project_id)
+                
+                if keyword_type == "deliverable":
+                    keyword = DeliverablesKeyword.objects.get(pk=keyword_id)
+                    ProjectDeliverables.objects.create(projectid=project, keywordid=keyword)
+                
+                elif keyword_type == "status":
+                    keyword = ProjectStatusKeyword.objects.get(pk=keyword_id)
+                    ProjectStatus.objects.update_or_create(projectid=project, keywordid=keyword)
+                
+                elif keyword_type == "therapeutic_area":
+                    keyword = TherapeuticAreaKeyword.objects.get(pk=keyword_id)
+                    ProjectTherapeuticArea.objects.create(projectid=project, keywordid=keyword)
+                
+                elif keyword_type == "ingredient_category":
+                    keyword = IngredientCategoryKeyword.objects.get(pk=keyword_id)
+                    ProjectIngredientCategory.objects.create(projectid=project, keywordid=keyword)
+                
+                elif keyword_type == "responsible_party":
+                    keyword = ResponsiblePartyKeyword.objects.get(pk=keyword_id)
+                    ProjectResponsibleParty.objects.create(projectid=project, keywordid=keyword)
+                
+                elif keyword_type == "route_of_admin":
+                    keyword = RouteofAdminKeyword.objects.get(pk=keyword_id)
+                    ProjectRouteofAdmin.objects.create(projectid=project, keywordid=keyword)
+                
+                return JsonResponse({"status": "success", "keyword": keyword.keyword})
+            
+            except Exception as e:
+                return JsonResponse({"status": "error", "message": str(e)})
+    
+    # AJAX endpoint to delete a keyword
+    def delete_keyword(request):
+        if request.method == "POST":
+            project_id = request.POST.get("project_id")
+            keyword_id = request.POST.get("keyword_id")
+            keyword_type = request.POST.get("keyword_type")
+
+            # Determine the keyword type and delete the keyword
+            try:
+                project = DeltekProjectID.objects.get(pk=project_id)
+                
+                if keyword_type == "deliverable":
+                    ProjectDeliverables.objects.filter(projectid=project, keywordid=keyword_id).delete()
+                
+                elif keyword_type == "status":
+                    ProjectStatus.objects.filter(projectid=project, keywordid=keyword_id).delete()
+                
+                elif keyword_type == "therapeutic_area":
+                    ProjectTherapeuticArea.objects.filter(projectid=project, keywordid=keyword_id).delete()
+                
+                elif keyword_type == "ingredient_category":
+                    ProjectIngredientCategory.objects.filter(projectid=project, keywordid=keyword_id).delete()
+                
+                elif keyword_type == "responsible_party":
+                    ProjectResponsibleParty.objects.filter(projectid=project, keywordid=keyword_id).delete()
+                
+                elif keyword_type == "route_of_admin":
+                    ProjectRouteofAdmin.objects.filter(projectid=project, keywordid=keyword_id).delete()
+                
+                return JsonResponse({"status": "success", "keyword": keyword_id})
+            
+            except Exception as e:
+                return JsonResponse({"status": "error", "message": str(e)})
+
+    def update_project_status(request):
+            if request.method == "POST":
+                project_id = request.POST.get("project_id")
+                keyword_id = request.POST.get("keyword_id")
+                
+                try:
+                    project = DeltekProjectID.objects.get(pk=project_id)
+                    keyword = ProjectStatusKeyword.objects.get(pk=keyword_id)
+                    
+                    # Update or create the project status entry
+                    ProjectStatus.objects.update_or_create(
+                        projectid=project, defaults={"keywordid": keyword}
+                    )
+                    
+                    return JsonResponse({"status": "success", "keyword": keyword.keyword})
+                
+                except Exception as e:
+                    return JsonResponse({"status": "error", "message": str(e)})

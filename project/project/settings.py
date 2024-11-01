@@ -15,7 +15,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "app",  # Your app name here
-    "windows_auth",  # Keep it here if you want to enable it later
+#    "windows_auth",  # Keep it here if you want to enable it later
 ]
 
 MIDDLEWARE = [
@@ -64,6 +64,9 @@ DATABASES = {
         },
     }
 }
+
+
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {

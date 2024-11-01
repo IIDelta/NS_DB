@@ -1,12 +1,9 @@
-# app/urls.py
-
 from django.urls import path
-from .views import (
-    ClientListView,
-    ProjectListView,
-)
+from . import views
 
 urlpatterns = [
-    path("", ClientListView.as_view(), name="client-list"),
-    path("project/", ProjectListView.as_view(), name="project-list"),
+    path('', views.ProjectListView.as_view(), name='project-list'),
+    path('add-keyword/', views.ProjectListView.add_keyword, name='add-keyword'),
+    path('delete-keyword/', views.ProjectListView.delete_keyword, name='delete-keyword'),
+    path('update-project-status/', views.ProjectListView.update_project_status, name='update-project-status'),
 ]
