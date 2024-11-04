@@ -183,7 +183,16 @@
                             </select>
                                           
                         </td>
-                        <td class="therapeutic-areas-column">{{ item.therapeutic_areas }}</td>
+                        <td class="therapeutic-areas-column">{{ item.therapeutic_areas }}
+                            <select id="therapeutic-areas-dropdown-{{ project.projectid }}" multiple onchange="updateTherapeuticAreas('{{ project.projectid }}')">
+                                {% for area in therapeutic_area_keywords %}
+                                    <option value="{{ area.keywordid }}"
+                                        {% if area.keywordid in project.selected_therapeutic_areas %}selected{% endif %}>
+                                        {{ area.keyword }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
                         <td class="ingredient-categories-column">{{ item.ingredient_categories }}</td>
                         <td class="ingredients-column">{{ item.ingredients }}</td>
                         <td class="responsible-party-column">{{ item.responsible_party }}</td>
@@ -363,7 +372,26 @@
     }
 
 
+    function updateTherapeuticAreas(projectId) {
+    let select = document.getElementById(`therapeutic-areas-dropdown-${projectId}`);
+    let selectedOptions = [...select.options].filter(option => option.selected).map(option => option.value);
 
+    $.ajax({
+        url: "{% url 'update-therapeutic-areas' %}",
+        method: "POST",
+        data: {
+            "project_id": projectId,
+            "therapeutic_area_ids[]": selectedOptions,
+            "csrfmiddlewaretoken": "{{ csrf_token }}",
+        },
+        success: function (response) {
+            console.log("Therapeutic Areas updated successfully.");
+        },
+        error: function (xhr, status, error) {
+            console.log("Error updating therapeutic areas: " + error);
+        }
+    });
+}
 
 
 </script>

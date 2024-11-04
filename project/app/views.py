@@ -80,6 +80,9 @@ class ProjectListView(View):
             project.selected_deliverable_ids = [
                 deliverable.keywordid_id for deliverable in project.projectdeliverables_set.all()
             ]
+            project.selected_therapeutic_areas = [
+                therapeutic_area.keywordid_id for therapeutic_area in project.projecttherapeuticarea_set.all()
+            ]
 
 
         # Pagination
@@ -247,3 +250,18 @@ def update_deliverables(request):
         except Exception as e:
             print("Error:", str(e))
             return JsonResponse({"error": str(e)}, status=500)
+        
+@csrf_exempt
+def update_therapeutic_areas(request):
+    if request.method == "POST":
+        project_id = request.POST.get("project_id")
+        therapeutic_area_ids = request.POST.getlist("therapeutic_area_ids[]")  # Note: this assumes you're passing an array of therapeutic area IDs
+
+        # Clear existing therapeutic areas for this project
+        ProjectTherapeuticArea.objects.filter(projectid=project_id).delete()
+
+        # Add the new set of therapeutic areas
+        for keyword_id in therapeutic_area_ids:
+            ProjectTherapeuticArea.objects.create(projectid_id=project_id, keywordid_id=keyword_id)
+
+        return JsonResponse({"status": "success"})
