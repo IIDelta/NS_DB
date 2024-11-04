@@ -266,7 +266,14 @@
                                 {% endfor %}
                             </select>
                         </td>
-                        <td class="ingredients-column">{{ item.ingredients }}</td>
+                        <td class="ingredients-column">{{ item.ingredients }}
+                            <!-- Input field for new ingredients (AJAX-powered entry) -->
+                            <select class="ingredient-input" multiple="multiple" id="ingredient-{{ project.projectid }}" data-projectid="{{ project.projectid }}">
+                                {% for ingredient in project.selected_ingredient_values %}
+                                    <option value="{{ ingredient }}" selected>{{ ingredient }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
                         <td class="responsible-party-column">{{ item.responsible_party }}
                             <select class="form-control select2-multiple-responsible-party" name="responsible_party_ids[]" multiple="multiple" data-project-id="{{ project.projectid }}">
                                 {% for keyword in responsible_party_keywords %}
@@ -639,6 +646,67 @@ $(document).ready(function() {
         });
     });
 });
+
+$(document).ready(function() {
+    // Initialize Select2 with tagging (free text)
+    $('.ingredients-select').select2({
+        tags: true,
+        tokenSeparators: [',', ' '],  // Allows comma or space-separated tags
+        placeholder: 'Enter ingredients',
+        allowClear: true
+    });
+});
+
+function updateIngredients(project_id) {
+    const ingredients = $(`#ingredients-${project_id}`).val(); // Get the selected values
+
+    $.ajax({
+        type: "POST",
+        url: "/update-ingredients/",
+        data: {
+            project_id: project_id,
+            ingredients: ingredients,
+            csrfmiddlewaretoken: getCookie('csrftoken')  // CSRF token
+        },
+        success: function(response) {
+            // You can replace the alert with another action like refreshing part of the page or logging success
+            console.log("Ingredients updated successfully");  // Optional: log success instead
+        },
+        error: function(error) {
+            console.error("Error updating ingredients:", error);
+        }
+    });
+}
+
+$(document).ready(function() {
+    $('.ingredient-input').select2({
+        tags: true,  // This allows free-text input
+        tokenSeparators: [',', ' ']  // Allows separating multiple inputs by comma or space
+    });
+
+    $('.ingredient-input').on('change', function() {
+        var projectId = $(this).data('projectid');
+        var selectedIngredients = $(this).val();  // Get selected/free-text ingredients
+
+        // Make AJAX request to update the ingredients for this project
+        $.ajax({
+            url: '/update-ingredients/',  // Your URL for updating ingredients
+            type: 'POST',
+            data: {
+                'project_id': projectId,
+                'ingredients': selectedIngredients,  // Pass the array of selected ingredients
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                console.log("Ingredients updated successfully");  // Optional: log success to console instead
+            },
+            error: function(error) {
+                console.error("Error updating ingredients:", error);
+            }
+        });
+    });
+});
+
 
 </script>
 </body>

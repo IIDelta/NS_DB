@@ -57,20 +57,19 @@ class ProjectListView(View):
         if filters["IngredientCategories"]:
             projects = projects.filter(projectingredientcategory__keywordid__keyword__icontains=filters["IngredientCategories"])
         if filters["Ingredients"]:
-            projects = projects.filter(projectingredients__keywordid__icontains=filters["Ingredients"])
+            projects = projects.filter(projectingredients__keywordid__icontains=filters["Ingredients"])  # Adjusted for free text
         if filters["ResponsibleParty"]:
             projects = projects.filter(projectresponsibleparty__keywordid__keyword__icontains=filters["ResponsibleParty"])
         if filters["RouteOfAdmin"]:
             projects = projects.filter(projectrouteofadmin__keywordid__keyword__icontains=filters["RouteOfAdmin"])
 
-
-        # Query projects with prefetching for related fields
-        projects = DeltekProjectID.objects.all().prefetch_related(
+        # Query projects with prefetching for related fields (including filters)
+        projects = projects.prefetch_related(
             Prefetch("projectdeliverables_set", queryset=ProjectDeliverables.objects.select_related("keywordid")),
             Prefetch("projectstatus_set", queryset=ProjectStatus.objects.select_related("keywordid")),
             Prefetch("projecttherapeuticarea_set", queryset=ProjectTherapeuticArea.objects.select_related("keywordid")),
             Prefetch("projectingredientcategory_set", queryset=ProjectIngredientCategory.objects.select_related("keywordid")),
-            Prefetch("projectingredients_set", queryset=ProjectIngredients.objects.all()),
+            Prefetch("projectingredients_set", queryset=ProjectIngredients.objects.all()),  # This line is important
             Prefetch("projectresponsibleparty_set", queryset=ProjectResponsibleParty.objects.select_related("keywordid")),
             Prefetch("projectrouteofadmin_set", queryset=ProjectRouteofAdmin.objects.select_related("keywordid")),
         )
@@ -86,12 +85,16 @@ class ProjectListView(View):
             project.selected_ingredient_category_ids = [
                 ingredient.keywordid_id for ingredient in project.projectingredientcategory_set.all()
             ]
+            project.selected_ingredient_values = [
+                ingredient.keywordid for ingredient in project.projectingredients_set.all()
+            ]
             project.selected_responsible_party_ids = [
                 party.keywordid_id for party in project.projectresponsibleparty_set.all()
             ]
             project.selected_route_of_admin_ids = [
                 route.keywordid_id for route in project.projectrouteofadmin_set.all()
             ]
+
 
         # Pagination
         paginator = Paginator(projects, 10)  # Show 10 projects per page
@@ -296,3 +299,21 @@ def update_route_of_admin(request):
 
         return JsonResponse({"status": "success"})
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+@csrf_exempt
+def update_ingredients(request):
+    if request.method == "POST":
+        project_id = request.POST.get("project_id")
+        ingredients = request.POST.getlist("ingredients[]")  # List of free-text ingredients
+
+        # Clear existing ingredients for the project
+        ProjectIngredients.objects.filter(projectid=project_id).delete()
+
+        # Add new ingredients (keywordid field will store free-text values here)
+        for ingredient in ingredients:
+            ProjectIngredients.objects.create(projectid_id=project_id, keywordid=ingredient)
+
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"error": "Invalid request"}, status=400)
+

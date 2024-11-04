@@ -11,5 +11,6 @@ urlpatterns = [
     path('update-ingredient-categories/', views.update_ingredient_categories, name='update-ingredient-categories'),
     path('update-responsible-parties/', views.update_responsible_parties, name='update-responsible-parties'),
     path('update-route-of-admin/', views.update_route_of_admin, name='update-route-of-admin'),
+    path('update-ingredients/', views.update_ingredients, name='update_ingredients'),
 
 ]
