@@ -38,25 +38,8 @@ class ProjectListView(View):
             "RouteOfAdmin": request.GET.get("RouteOfAdmin"),
         }
 
-        deliverable_keywords = DeliverablesKeyword.objects.all()
-
-
-        # Query projects with prefetching for related fields
-        projects = DeltekProjectID.objects.all().prefetch_related(
-            Prefetch("projectdeliverables_set", queryset=ProjectDeliverables.objects.select_related("keywordid")),
-            Prefetch("projectstatus_set", queryset=ProjectStatus.objects.select_related("keywordid")),
-            Prefetch("projecttherapeuticarea_set", queryset=ProjectTherapeuticArea.objects.select_related("keywordid")),
-            Prefetch("projectingredientcategory_set", queryset=ProjectIngredientCategory.objects.select_related("keywordid")),
-            Prefetch("projectingredients_set", queryset=ProjectIngredients.objects.all()),
-            Prefetch("projectresponsibleparty_set", queryset=ProjectResponsibleParty.objects.select_related("keywordid")),
-            Prefetch("projectrouteofadmin_set", queryset=ProjectRouteofAdmin.objects.select_related("keywordid")),
-        )
-
-        # Add the list of deliverables to each project in the queryset
-        for project in projects:
-            project.selected_deliverable_ids = [
-                deliverable.keywordid_id for deliverable in project.projectdeliverables_set.all()
-            ]
+        # Query projects with filtering
+        projects = DeltekProjectID.objects.all()
 
         # Apply filters
         if filters["ProjectID"]:
@@ -81,6 +64,23 @@ class ProjectListView(View):
             projects = projects.filter(projectrouteofadmin__keywordid__keyword__icontains=filters["RouteOfAdmin"])
 
 
+        # Query projects with prefetching for related fields
+        projects = DeltekProjectID.objects.all().prefetch_related(
+            Prefetch("projectdeliverables_set", queryset=ProjectDeliverables.objects.select_related("keywordid")),
+            Prefetch("projectstatus_set", queryset=ProjectStatus.objects.select_related("keywordid")),
+            Prefetch("projecttherapeuticarea_set", queryset=ProjectTherapeuticArea.objects.select_related("keywordid")),
+            Prefetch("projectingredientcategory_set", queryset=ProjectIngredientCategory.objects.select_related("keywordid")),
+            Prefetch("projectingredients_set", queryset=ProjectIngredients.objects.all()),
+            Prefetch("projectresponsibleparty_set", queryset=ProjectResponsibleParty.objects.select_related("keywordid")),
+            Prefetch("projectrouteofadmin_set", queryset=ProjectRouteofAdmin.objects.select_related("keywordid")),
+        )
+
+        # Add the list of deliverables to each project in the queryset
+        for project in projects:
+            project.selected_deliverable_ids = [
+                deliverable.keywordid_id for deliverable in project.projectdeliverables_set.all()
+            ]
+
 
         # Pagination
         paginator = Paginator(projects, 10)  # Show 10 projects per page
@@ -97,8 +97,6 @@ class ProjectListView(View):
             "ingredient_category_keywords": IngredientCategoryKeyword.objects.all(),
             "responsible_party_keywords": ResponsiblePartyKeyword.objects.all(),
             "route_of_admin_keywords": RouteofAdminKeyword.objects.all(),
-            "deliverable_keywords": deliverable_keywords,
-
         }
 
         return render(request, "project_list.html", context)
