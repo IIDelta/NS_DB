@@ -256,7 +256,16 @@
                                 {% endfor %}
                             </select>
                         </td>
-                        <td class="ingredient-categories-column">{{ item.ingredient_categories }}</td>
+                        <td class="ingredient-categories-column">{{ item.ingredient_categories }}
+                            <select class="form-control select2-multiple-ingredients" name="ingredient_category_ids[]" multiple="multiple" data-project-id="{{ project.projectid }}">
+                                {% for keyword in ingredient_category_keywords %}
+                                    <option value="{{ keyword.keywordid }}" 
+                                            {% if keyword.keywordid in project.selected_ingredient_category_ids %} selected {% endif %}>
+                                        {{ keyword.keyword }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
                         <td class="ingredients-column">{{ item.ingredients }}</td>
                         <td class="responsible-party-column">{{ item.responsible_party }}</td>
                         <td class="route-of-admin-column">{{ item.route_of_admin }}</td>
@@ -523,6 +532,36 @@
         });
     });
 });
+$(document).ready(function() {
+    // Initialize Select2 for ingredient categories
+    $('.select2-multiple-ingredients').select2({
+        placeholder: "Select Ingredient Categories",
+        allowClear: true
+    });
+
+    // AJAX call to update ingredient categories
+    $('.select2-multiple-ingredients').change(function() {
+        var projectId = $(this).data('project-id');
+        var ingredientCategoryIds = $(this).val();  // Get selected values
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "update-ingredient-categories" %}',
+            data: {
+                'project_id': projectId,
+                'ingredient_category_ids[]': ingredientCategoryIds,
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+            },
+            success: function(response) {
+                console.log('Ingredient Categories updated successfully');
+            },
+            error: function(response) {
+                console.log("Error updating ingredient categories:", response);
+            }
+        });
+    });
+});
+
 
 </script>
 </body>

@@ -8,5 +8,6 @@ urlpatterns = [
     path('update-project-status/', views.update_project_status, name='update-project-status'),
     path('update-therapeutic-areas/', views.update_therapeutic_areas, name='update-therapeutic-areas'),
     path('update-deliverables/', views.update_deliverables, name='update-deliverables'),
+    path('update-ingredient-categories/', views.update_ingredient_categories, name='update-ingredient-categories'),
 
 ]

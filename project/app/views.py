@@ -83,6 +83,9 @@ class ProjectListView(View):
             project.selected_therapeutic_areas = [
                 therapeutic_area.keywordid_id for therapeutic_area in project.projecttherapeuticarea_set.all()
             ]
+            project.selected_ingredient_category_ids = [
+                ingredient.keywordid_id for ingredient in project.projectingredientcategory_set.all()
+            ]
 
 
         # Pagination
@@ -241,3 +244,18 @@ def update_therapeutic_areas(request):
 
         return JsonResponse({"status": "success"})
 
+@csrf_exempt
+def update_ingredient_categories(request):
+    if request.method == "POST":
+        project_id = request.POST.get("project_id")
+        ingredient_category_ids = request.POST.getlist("ingredient_category_ids[]")
+
+        # Clear existing ingredient categories
+        ProjectIngredientCategory.objects.filter(projectid=project_id).delete()
+
+        # Add selected ingredient categories
+        for keyword_id in ingredient_category_ids:
+            ProjectIngredientCategory.objects.create(projectid_id=project_id, keywordid_id=keyword_id)
+
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"error": "Invalid request"}, status=400)
