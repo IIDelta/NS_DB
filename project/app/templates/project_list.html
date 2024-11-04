@@ -19,23 +19,23 @@
         }
 
         .filter-container {
-            margin-bottom: 20px;
             display: flex;
+            justify-content: flex-start;
+            align-items: flex-start; /* Align both items at the top */
+            gap: 20px; /* Add space between filter and table */
+            margin-bottom: 20px;
         }
 
         .filter-form {
-            flex: 1;
-            max-width: 500px;
-            margin-left: -200px;
+            flex: 0 0 250px; /* Keep the width of the filter fixed at 250px */
+            padding-right: 20px;
         }
 
         .table-container {
-            flex: 3;
-            margin-left: 20px;
-            float: left;
+            flex-grow: 1; /* This will make the table expand to fill the remaining space */
             width: 100%;
-            padding-right: 0px;
         }
+
 
         #checkboxes {
             display: none;
@@ -51,34 +51,32 @@
         /* Table layout styles */
         table {
             width: 100%;
-            table-layout: fixed; /* Prevents the table from expanding based on content */
-            min-width: 1200px; /* Adjust this value as needed */
-
-            border-collapse: collapse; /* Clean borders */
+            table-layout: auto; /* Auto-adjust columns based on content */
+            min-width: 1000px; /* Minimum width to prevent squishing */
+            border-collapse: collapse;
         }
 
         th, td {
             padding: 10px;
             text-align: left;
             vertical-align: top;
-            border: 1px solid #ddd; /* Optional: Gives a light border between cells */
+            border: 1px solid #ddd;
         }
 
-        /* Set widths for each column using percentages or fixed widths */
         th.project-id, td.project-id {
-            width: 10%; /* Adjust this width as needed */
+            width: 10%;
         }
 
         th.project-name, td.project-name {
-            width: 150%; /* Adjust this width as needed */
+            width: 20%;
         }
 
         th.sponsor-name, td.sponsor-name {
-            width: 150%;
+            width: 20%;
         }
 
         th.deliverables, td.deliverables {
-            width: 20%; /* Increase width for Deliverables column */
+            width: 25%;
         }
 
         th.status, td.status {
@@ -86,20 +84,18 @@
         }
 
         th.therapeutic-areas, td.therapeutic-areas {
-            width: 20%; /* Adjust the width of Therapeutic Areas */
+            width: 25%;
         }
 
-        /* Ensure the select box inside the table adjusts to the column */
         td select {
-            width: 100%; /* Let the select fill the cell */
-            box-sizing: border-box; /* Ensure padding/border does not expand width */
+            width: 100%;
+            box-sizing: border-box;
         }
 
-        /* Optional: limit height of the table row when multiple select boxes are involved */
         td select[multiple] {
-            height: 100px; /* Adjust as necessary */
-            overflow-y: scroll; /* Scroll if there are too many options */
+            height: 100px;
         }
+
 
     </style>
     <script>
@@ -203,9 +199,9 @@
         <table class="table table-striped table-bordered">
             <thead class="thead-dark">
                 <tr>
-                    <th>Project ID</th>
-                    <th>Project Name</th>
-                    <th>Sponsor Name</th>
+                    <th class="project-id">Project ID</th>
+                    <th class="project-name">Project Name</th>
+                    <th class="sponsor-name">Sponsor Name</th>
                     <th class="deliverables-column">Deliverables</th>
                     <th class="status-column">Project Status</th>
                     <th class="therapeutic-areas-column">Therapeutic Areas</th>
