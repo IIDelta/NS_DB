@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <title>Project List</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
     <style>
         .hidden {
             display: none;
@@ -183,12 +188,17 @@
                             </select>
                                           
                         </td>
-                        <td class="therapeutic-areas-column">{{ item.therapeutic_areas }}
-                            <select id="therapeutic-areas-dropdown-{{ project.projectid }}" multiple onchange="updateTherapeuticAreas('{{ project.projectid }}')">
-                                {% for area in therapeutic_area_keywords %}
-                                    <option value="{{ area.keywordid }}"
-                                        {% if area.keywordid in project.selected_therapeutic_areas %}selected{% endif %}>
-                                        {{ area.keyword }}
+                        <td class="therapeutic-areas-column">
+                            <select id="therapeutic-areas-{{ project.projectid }}" 
+                                    class="therapeutic-areas-dropdown" 
+                                    multiple="multiple" 
+                                    onchange="updateTherapeuticAreas('{{ project.projectid }}')">
+                                {% for therapeutic_area in therapeutic_area_keywords %}
+                                    <option value="{{ therapeutic_area.keywordid }}"
+                                        {% if therapeutic_area.keywordid in project.selected_therapeutic_areas %}
+                                            selected
+                                        {% endif %}>
+                                        {{ therapeutic_area.keyword }}
                                     </option>
                                 {% endfor %}
                             </select>
@@ -219,7 +229,6 @@
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     function addKeyword(projectId, keywordId, keywordType) {
         $.ajax({
@@ -372,29 +381,40 @@
     }
 
 
-    function updateTherapeuticAreas(projectId) {
-    let select = document.getElementById(`therapeutic-areas-dropdown-${projectId}`);
-    let selectedOptions = [...select.options].filter(option => option.selected).map(option => option.value);
+    function updateTherapeuticAreas(project_id) {
+        const selectedTherapeuticAreas = $(`#therapeutic-areas-${project_id}`).val(); // Get selected values
+        $.ajax({
+            type: "POST",
+            url: "/update-therapeutic-areas/",
+            data: {
+                project_id: project_id,
+                therapeutic_area_ids: selectedTherapeuticAreas,
+                csrfmiddlewaretoken: getCookie('csrftoken') // Ensure CSRF token is included
+            },
+            success: function(response) {
+                console.log('Therapeutic areas updated successfully');
+            },
+            error: function(xhr, status, error) {
+                console.error('Error updating therapeutic areas:', error);
+            }
+        });
+    }
 
-    $.ajax({
-        url: "{% url 'update-therapeutic-areas' %}",
-        method: "POST",
-        data: {
-            "project_id": projectId,
-            "therapeutic_area_ids[]": selectedOptions,
-            "csrfmiddlewaretoken": "{{ csrf_token }}",
-        },
-        success: function (response) {
-            console.log("Therapeutic Areas updated successfully.");
-        },
-        error: function (xhr, status, error) {
-            console.log("Error updating therapeutic areas: " + error);
-        }
-    });
-}
+
 
 
 </script>
+
+<script>
+    // Initialize Select2 on the therapeutic areas dropdown
+    $(document).ready(function() {
+        $('.therapeutic-areas-dropdown').select2({
+            placeholder: 'Select therapeutic areas',
+            allowClear: true
+        });
+    });
+</script>
+
 
 </body>
 </html>
