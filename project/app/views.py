@@ -86,7 +86,12 @@ class ProjectListView(View):
             project.selected_ingredient_category_ids = [
                 ingredient.keywordid_id for ingredient in project.projectingredientcategory_set.all()
             ]
-
+            project.selected_responsible_party_ids = [
+                party.keywordid_id for party in project.projectresponsibleparty_set.all()
+            ]
+            project.selected_route_of_admin_ids = [
+                route.keywordid_id for route in project.projectrouteofadmin_set.all()
+            ]
 
         # Pagination
         paginator = Paginator(projects, 10)  # Show 10 projects per page
@@ -256,6 +261,38 @@ def update_ingredient_categories(request):
         # Add selected ingredient categories
         for keyword_id in ingredient_category_ids:
             ProjectIngredientCategory.objects.create(projectid_id=project_id, keywordid_id=keyword_id)
+
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+@csrf_exempt
+def update_responsible_parties(request):
+    if request.method == "POST":
+        project_id = request.POST.get("project_id")
+        responsible_party_ids = request.POST.getlist("responsible_party_ids[]")
+
+        # Clear existing responsible parties
+        ProjectResponsibleParty.objects.filter(projectid=project_id).delete()
+
+        # Add selected responsible parties
+        for keyword_id in responsible_party_ids:
+            ProjectResponsibleParty.objects.create(projectid_id=project_id, keywordid_id=keyword_id)
+
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+@csrf_exempt
+def update_route_of_admin(request):
+    if request.method == "POST":
+        project_id = request.POST.get("project_id")
+        route_of_admin_ids = request.POST.getlist("route_of_admin_ids[]")
+
+        # Clear existing route of admin entries
+        ProjectRouteofAdmin.objects.filter(projectid=project_id).delete()
+
+        # Add selected route of admin entries
+        for keyword_id in route_of_admin_ids:
+            ProjectRouteofAdmin.objects.create(projectid_id=project_id, keywordid_id=keyword_id)
 
         return JsonResponse({"status": "success"})
     return JsonResponse({"error": "Invalid request"}, status=400)

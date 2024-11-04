@@ -9,5 +9,7 @@ urlpatterns = [
     path('update-therapeutic-areas/', views.update_therapeutic_areas, name='update-therapeutic-areas'),
     path('update-deliverables/', views.update_deliverables, name='update-deliverables'),
     path('update-ingredient-categories/', views.update_ingredient_categories, name='update-ingredient-categories'),
+    path('update-responsible-parties/', views.update_responsible_parties, name='update-responsible-parties'),
+    path('update-route-of-admin/', views.update_route_of_admin, name='update-route-of-admin'),
 
 ]

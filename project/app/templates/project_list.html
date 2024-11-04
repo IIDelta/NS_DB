@@ -267,8 +267,26 @@
                             </select>
                         </td>
                         <td class="ingredients-column">{{ item.ingredients }}</td>
-                        <td class="responsible-party-column">{{ item.responsible_party }}</td>
-                        <td class="route-of-admin-column">{{ item.route_of_admin }}</td>
+                        <td class="responsible-party-column">{{ item.responsible_party }}
+                            <select class="form-control select2-multiple-responsible-party" name="responsible_party_ids[]" multiple="multiple" data-project-id="{{ project.projectid }}">
+                                {% for keyword in responsible_party_keywords %}
+                                    <option value="{{ keyword.keywordid }}" 
+                                            {% if keyword.keywordid in project.selected_responsible_party_ids %} selected {% endif %}>
+                                        {{ keyword.keyword }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td class="route-of-admin-column">{{ item.route_of_admin }}
+                            <select class="form-control select2-multiple-route-admin" name="route_of_admin_ids[]" multiple="multiple" data-project-id="{{ project.projectid }}">
+                                {% for keyword in route_of_admin_keywords %}
+                                    <option value="{{ keyword.keywordid }}" 
+                                            {% if keyword.keywordid in project.selected_route_of_admin_ids %} selected {% endif %}>
+                                        {{ keyword.keyword }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -562,6 +580,65 @@ $(document).ready(function() {
     });
 });
 
+$(document).ready(function() {
+    // Initialize Select2 for responsible parties
+    $('.select2-multiple-responsible-party').select2({
+        placeholder: "Select Responsible Parties",
+        allowClear: true
+    });
+
+    // AJAX call to update responsible parties
+    $('.select2-multiple-responsible-party').change(function() {
+        var projectId = $(this).data('project-id');
+        var responsiblePartyIds = $(this).val();  // Get selected values
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "update-responsible-parties" %}',
+            data: {
+                'project_id': projectId,
+                'responsible_party_ids[]': responsiblePartyIds,
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+            },
+            success: function(response) {
+                console.log('Responsible Parties updated successfully');
+            },
+            error: function(response) {
+                console.log("Error updating responsible parties:", response);
+            }
+        });
+    });
+});
+
+$(document).ready(function() {
+    // Initialize Select2 for route of admin
+    $('.select2-multiple-route-admin').select2({
+        placeholder: "Select Route of Admin",
+        allowClear: true
+    });
+
+    // AJAX call to update route of admin
+    $('.select2-multiple-route-admin').change(function() {
+        var projectId = $(this).data('project-id');
+        var routeOfAdminIds = $(this).val();  // Get selected values
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "update-route-of-admin" %}',
+            data: {
+                'project_id': projectId,
+                'route_of_admin_ids[]': routeOfAdminIds,
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+            },
+            success: function(response) {
+                console.log('Route of Admin updated successfully');
+            },
+            error: function(response) {
+                console.log("Error updating route of admin:", response);
+            }
+        });
+    });
+});
 
 </script>
 </body>
