@@ -75,7 +75,7 @@ class ProjectListView(View):
             Prefetch("projectrouteofadmin_set", queryset=ProjectRouteofAdmin.objects.select_related("keywordid")),
         )
 
-        # Add the list of deliverables to each project in the queryset
+
         for project in projects:
             project.selected_deliverable_ids = [
                 deliverable.keywordid_id for deliverable in project.projectdeliverables_set.all()
@@ -95,7 +95,7 @@ class ProjectListView(View):
             "projects": page_obj,
             "filters": filters,
             "status_keywords": ProjectStatusKeyword.objects.all(),
-            "deliverable_keywords": DeliverablesKeyword.objects.all(),
+            "deliverables_keywords": DeliverablesKeyword.objects.all(),  # Deliverable keywords
             "therapeutic_area_keywords": TherapeuticAreaKeyword.objects.all(),
             "ingredient_category_keywords": IngredientCategoryKeyword.objects.all(),
             "responsible_party_keywords": ResponsiblePartyKeyword.objects.all(),
@@ -211,45 +211,20 @@ def update_project_status(request):
 @csrf_exempt
 def update_deliverables(request):
     if request.method == "POST":
-        try:
-            data = json.loads(request.body)  # Parse JSON data
-            project_id = data.get("project_id")
-            deliverable_ids = data.get("deliverable_ids", [])
+        project_id = request.POST.get("project_id")
+        deliverable_ids = request.POST.getlist("deliverable_ids[]")
 
-            # Debugging information
-            print("Received project_id:", project_id)
-            print("Received deliverable_ids:", deliverable_ids)
+        # Clear existing deliverables
+        ProjectDeliverables.objects.filter(projectid=project_id).delete()
 
-            # Validate project_id and deliverable_ids
-            if not project_id or not isinstance(deliverable_ids, list):
-                print("Invalid data format")
-                return JsonResponse({"error": "Invalid data format"}, status=400)
+        # Add selected deliverables
+        for keyword_id in deliverable_ids:
+            ProjectDeliverables.objects.create(projectid_id=project_id, keywordid_id=keyword_id)
 
-            # Check if project exists
-            try:
-                project = DeltekProjectID.objects.get(pk=project_id)
-            except DeltekProjectID.DoesNotExist:
-                print("Project not found")
-                return JsonResponse({"error": "Project not found"}, status=404)
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"error": "Invalid request"}, status=400)
 
-            # Clear existing deliverables for the project
-            ProjectDeliverables.objects.filter(projectid=project).delete()
 
-            # Add new deliverables
-            for deliverable_id in deliverable_ids:
-                try:
-                    deliverable = DeliverablesKeyword.objects.get(pk=deliverable_id)
-                    ProjectDeliverables.objects.create(projectid=project, keywordid=deliverable)
-                except DeliverablesKeyword.DoesNotExist:
-                    print(f"Deliverable with id {deliverable_id} not found")
-                    return JsonResponse({"error": f"Deliverable with id {deliverable_id} not found"}, status=404)
-
-            print("Deliverables updated successfully")
-            return JsonResponse({"status": "success", "message": "Deliverables updated successfully"})
-        
-        except Exception as e:
-            print("Error:", str(e))
-            return JsonResponse({"error": str(e)}, status=500)
         
 @csrf_exempt
 def update_therapeutic_areas(request):
@@ -265,3 +240,4 @@ def update_therapeutic_areas(request):
             ProjectTherapeuticArea.objects.create(projectid_id=project_id, keywordid_id=keyword_id)
 
         return JsonResponse({"status": "success"})
+

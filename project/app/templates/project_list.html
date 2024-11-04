@@ -13,37 +13,92 @@
         .hidden {
             display: none;
         }
+
         .form-vertical .form-group {
             margin-bottom: 15px;
         }
+
         .filter-container {
             margin-bottom: 20px;
             display: flex;
         }
+
         .filter-form {
             flex: 1;
             max-width: 500px;
             margin-left: -200px;
         }
+
         .table-container {
             flex: 3;
             margin-left: 20px;
             float: left;
-            width: 75%;
-            padding-right: 200px;
+            width: 100%;
+            padding-right: 0px;
         }
+
         #checkboxes {
             display: none;
             margin-bottom: 20px;
         }
+
         .row::after {
             content: "";
             display: table;
             clear: both;
         }
-        select {
-            width: 200px; /* Adjust as needed */
-            max-width: 100%; /* Allow it to expand */
+
+        /* Table layout styles */
+        table {
+            width: 100%;
+            table-layout: fixed; /* Prevents the table from expanding based on content */
+            min-width: 1200px; /* Adjust this value as needed */
+
+            border-collapse: collapse; /* Clean borders */
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            vertical-align: top;
+            border: 1px solid #ddd; /* Optional: Gives a light border between cells */
+        }
+
+        /* Set widths for each column using percentages or fixed widths */
+        th.project-id, td.project-id {
+            width: 10%; /* Adjust this width as needed */
+        }
+
+        th.project-name, td.project-name {
+            width: 150%; /* Adjust this width as needed */
+        }
+
+        th.sponsor-name, td.sponsor-name {
+            width: 150%;
+        }
+
+        th.deliverables, td.deliverables {
+            width: 20%; /* Increase width for Deliverables column */
+        }
+
+        th.status, td.status {
+            width: 10%;
+        }
+
+        th.therapeutic-areas, td.therapeutic-areas {
+            width: 20%; /* Adjust the width of Therapeutic Areas */
+        }
+
+        /* Ensure the select box inside the table adjusts to the column */
+        td select {
+            width: 100%; /* Let the select fill the cell */
+            box-sizing: border-box; /* Ensure padding/border does not expand width */
+        }
+
+        /* Optional: limit height of the table row when multiple select boxes are involved */
+        td select[multiple] {
+            height: 100px; /* Adjust as necessary */
+            overflow-y: scroll; /* Scroll if there are too many options */
         }
 
     </style>
@@ -166,16 +221,18 @@
                         <td>{{ project.projectid }}</td>
                         <td>{{ project.projectname }}</td>
                         <td>{{ project.sponsorserial.sponsorname }}</td>
-                        <td class="deliverables-column">{{ item.deliverables }}
-                            <select id="deliverables-dropdown-{{ project.projectid }}" multiple onchange="updateDeliverables('{{ project.projectid }}')">
-                                {% for deliverable in deliverable_keywords %}
-                                    <option value="{{ deliverable.keywordid }}"
-                                        {% if deliverable.keywordid in project.selected_deliverable_ids %}selected{% endif %}>
-                                        {{ deliverable.keyword }}
+                        <!-- Deliverables dropdown for each project -->
+                        <td class="deliverables-column">
+                            <select class="form-control select2-multiple-deliverables" name="deliverable_ids[]" multiple="multiple" data-project-id="{{ project.projectid }}">
+                                {% for keyword in deliverables_keywords %}
+                                    <option value="{{ keyword.keywordid }}" 
+                                            {% if keyword.keywordid in project.selected_deliverable_ids %} selected {% endif %}>
+                                        {{ keyword.keyword }}
                                     </option>
                                 {% endfor %}
                             </select>
                         </td>
+
                         <td class="status-column">{{ item.status }}
                             <select id="status-dropdown-{{ project.projectid }}" onchange="updateStatus('{{ project.projectid }}')">
                                 <option value=""></option> <!-- Displayed when no status is assigned -->
@@ -348,37 +405,25 @@
         });
     }
 
-    function updateDeliverables(projectId) {
-        const selectElement = document.getElementById(`deliverables-dropdown-${projectId}`);
-        const selectedOptions = Array.from(selectElement.selectedOptions).map(option => option.value);
-
-        console.log("Project ID:", projectId);
-        console.log("Selected Deliverable IDs:", selectedOptions);
-
-        fetch("/update-deliverables/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCookie("csrftoken")  // Ensure this function exists and works
+    function updateDeliverables(project_id) {
+        const selectedDeliverables = $(`#deliverables-${project_id}`).val(); // Get selected values
+        $.ajax({
+            type: "POST",
+            url: "/update-deliverables/",
+            data: {
+                project_id: project_id,
+                deliverable_ids: selectedDeliverables,
+                csrfmiddlewaretoken: getCookie('csrftoken') // Ensure CSRF token is included
             },
-            body: JSON.stringify({
-                project_id: projectId,
-                deliverable_ids: selectedOptions
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Network response was not ok");
+            success: function(response) {
+                console.log('Deliverables updated successfully');
+            },
+            error: function(xhr, status, error) {
+                console.error('Error updating deliverables:', error);
             }
-            return response.json();
-        })
-        .then(data => {
-            console.log("Deliverables updated successfully", data);
-        })
-        .catch(error => {
-            console.error("Error updating deliverables:", error);
         });
     }
+
 
 
     function updateTherapeuticAreas(project_id) {
@@ -413,9 +458,77 @@
             allowClear: true
         });
     });
+
+    $(document).ready(function() {
+    $('.deliverables-dropdown').select2({
+        placeholder: 'Select deliverables',
+        allowClear: true
+    });
+});
+
 </script>
 
+<script>
+    $(document).ready(function() {
+        // Apply select2 to all multiple therapeutic areas dropdowns
+        $('.select2-multiple-therapeutic-areas').select2({
+            placeholder: "Select Therapeutic Areas",
+            allowClear: true
+        });
 
+        // AJAX call to update therapeutic areas
+        $('.select2-multiple-therapeutic-areas').change(function() {
+            var projectId = $(this).data('project-id');
+            var therapeuticAreaIds = $(this).val();
+            $.ajax({
+                type: 'POST',
+                url: '{% url "update-therapeutic-areas" %}',
+                data: {
+                    'project_id': projectId,
+                    'therapeutic_area_ids[]': therapeuticAreaIds,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                },
+                success: function(response) {
+                    console.log(response.status);
+                },
+                error: function(response) {
+                    console.log("Error:", response);
+                }
+            });
+        });
+    });
+
+    $(document).ready(function() {
+    // Initialize Select2 for deliverables
+    $('.select2-multiple-deliverables').select2({
+        placeholder: "Select Deliverables",
+        allowClear: true
+    });
+
+    // AJAX call to update deliverables
+    $('.select2-multiple-deliverables').change(function() {
+        var projectId = $(this).data('project-id');
+        var deliverableIds = $(this).val();  // Get selected values
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "update-deliverables" %}',
+            data: {
+                'project_id': projectId,
+                'deliverable_ids[]': deliverableIds,
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+            },
+            success: function(response) {
+                console.log('Deliverables updated successfully');
+            },
+            error: function(response) {
+                console.log("Error updating deliverables:", response);
+            }
+        });
+    });
+});
+
+</script>
 </body>
 </html>
 
