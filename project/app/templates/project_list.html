@@ -103,10 +103,34 @@
                 $('#filter-form select').val(null).trigger('change');  // Clears select2 fields
             });
         });
+        // On page load, set the dropdown value to the current page_size from the URL
+        $(document).ready(function() {
+            const searchParams = new URLSearchParams(window.location.search);
+            const pageSize = searchParams.get('page_size') || '10'; // Default to 10 if not set
+            $('#page-size-selector').val(pageSize); // Set the dropdown to the current page size
+        });
+
         function updatePageSize() {
             const pageSize = $('#page-size-selector').val();
-            window.location.href = `?page_size=${pageSize}`;
+
+            // Get the current URL without query parameters
+            let currentUrl = window.location.href.split('?')[0];
+
+            // Get existing query parameters
+            let searchParams = new URLSearchParams(window.location.search);
+
+            // Update or add the page_size parameter
+            searchParams.set('page_size', pageSize);
+
+            // Reset to the first page if changing the page size
+            searchParams.set('page', '1');
+
+            // Redirect to the updated URL
+            window.location.href = `${currentUrl}?${searchParams.toString()}`;
         }
+
+
+
 
         function toggleColumn(columnClass) {
             const elements = document.getElementsByClassName(columnClass);
@@ -274,18 +298,17 @@
             </tbody>
         </table>
 
-        <!-- Pagination and Page Size Selector Below the Table -->
-        <div class="pagination-container">
-            <!-- Page Size Selector -->
-            <div class="page-size-selector">
-                <label for="page-size-selector">Page Size:</label>
-                <select id="page-size-selector" class="form-control" onchange="updatePageSize()">
-                    <option value="10">10</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select>
-            </div>
+        <div class="page-size-selector">
+            <label for="page-size-selector">Page Size:</label>
+            <select id="page-size-selector" class="form-control" onchange="updatePageSize()">
+                <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
+                <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+            </select>
+            
+        </div>
+        
 
         <!-- Pagination -->
         <nav>

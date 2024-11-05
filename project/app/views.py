@@ -24,6 +24,15 @@ import json
 
 class ProjectListView(View):
     def get(self, request):
+
+            # Capture page size from the query parameter
+        page_size = request.GET.get('page_size', 10)  # Default to 10 if not provided
+
+        # Convert page_size to an integer (necessary since GET params are strings)
+        try:
+            page_size = int(page_size)
+        except ValueError:
+            page_size = 10  # Default if conversion fails
         # Filter parameters
         filters = {
             "ProjectID": request.GET.get("ProjectID"),
@@ -96,10 +105,11 @@ class ProjectListView(View):
             ]
 
 
-        # Pagination
-        paginator = Paginator(projects, 10)  # Show 10 projects per page
+        # Pagination: use the page_size from the query parameters
+        paginator = Paginator(projects, page_size)  # Use dynamic page size
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
+
 
         # Prepare context with dropdown options for each category
         context = {
@@ -111,6 +121,8 @@ class ProjectListView(View):
             "ingredient_category_keywords": IngredientCategoryKeyword.objects.all(),
             "responsible_party_keywords": ResponsiblePartyKeyword.objects.all(),
             "route_of_admin_keywords": RouteofAdminKeyword.objects.all(),
+            "page_size": page_size,  # Pass the selected page size to the template
+
         }
 
         return render(request, "project_list.html", context)
