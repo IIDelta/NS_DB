@@ -52,17 +52,63 @@
             z-index: 2;
         }
 
+        /* General styling for all select elements within table cells */
         td select {
             width: 100%;
             box-sizing: border-box;
         }
 
-        td select[multiple] {
-            height: 100px;
+        /* Styling specifically for Select2 elements */
+        td .select2-container--default .select2-selection--multiple {
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            padding: 4px;
+            min-height: 40px; /* Ensure consistent height */
         }
+
+        /* Adjust padding and margins for consistent alignment */
+        td .select2-selection--multiple {
+            min-height: 40px; /* Ensure consistent height */
+        }
+
+        /* Add styling for single select Select2 */
+        td .select2-container--default .select2-selection--single {
+            border: 1px solid #ced4da;
+            display: flex;
+            align-items: center;
+            min-height: 40px; /* Ensure consistent height */
+        }
+
+        /* Additional styling for regular (non-Select2) select elements */
+        td select:not(.select2-hidden-accessible) {
+            background-color: #f8f9fa; /* Light background for distinction */
+        }
+
+                /* Styling for the Project Status select element */
+        td .project-status-select {
+            width: 100%; /* Ensures the select takes the full width of the table cell */
+            border: 1px solid #ced4da; /* Standard border */
+            border-radius: 0.25rem; /* Rounded corners */
+            padding: 4px; /* Padding for better appearance */
+            font-size: 14px; /* Adjust font size for consistency */
+            background-color: #f9f9f9; /* Light background for better readability */
+            box-sizing: border-box; /* Include padding and border in the total width */
+        }
+
+        /* Add hover and focus states */
+        td .project-status-select:hover {
+            border-color: #b5b5b5; /* Darken border on hover */
+        }
+
+        td .project-status-select:focus {
+            border-color: #80bdff; /* Highlight border when focused */
+            outline: none; /* Remove default outline */
+            box-shadow: 0 0 3px rgba(128, 189, 255, 0.5); /* Add subtle shadow */
+        }
+
         .table-container {
             overflow-x: auto;
-            white-space: nowrap;
+            white-space: normal;
             padding: 10px; /* Optional: Adds some spacing around the table */
         }
         th.sticky {
@@ -85,6 +131,48 @@
 
         .page-size-selector select {
             margin-left: 5px;
+            width: 50px;
+        }
+
+        .project-id {
+            min-width: 50px;
+            max-width: 200px;
+        }
+        .project-name{
+            min-width: 150px;
+            max-width: 300px;
+        }
+        .sponsor-name{  
+            min-width: 150px;
+            max-width: 300px;
+        }
+        .deliverables-column{
+            min-width: 200px;
+            max-width: 300px;
+        }
+        .status-column{
+            min-width: 110px;
+            max-width: 300px;
+        }
+        .therapeutic-areas-column{
+            min-width: 200px;
+            max-width: 300px;
+        }
+        .ingredient-categories-column{
+            min-width: 200px;
+            max-width: 300px;
+        }
+        .ingredients-column{
+            min-width: 200px;
+            max-width: 300px;
+        }
+        .responsible-party-column{
+            min-width: 200px;
+            max-width: 300px;
+        }
+        .route-of-admin-column{
+            min-width: 200px;
+            max-width: 300px;
         }
     </style>
     <script>
