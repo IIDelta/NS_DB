@@ -1,6 +1,6 @@
 @echo off
 REM Navigate to the project directory
-cd C:\Users\Jdufour\Documents\db_program
+
 
 
 REM Activate the virtual environment
