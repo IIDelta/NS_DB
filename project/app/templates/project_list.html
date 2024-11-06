@@ -119,9 +119,44 @@
         }
         .pagination-container {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
+            justify-content: center; /* Center the pagination */
+            margin-top: 20px; /* Add some space above */
+        }
+
+        .pagination {
+            display: inline-flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .page-item {
+            margin: 0 5px; /* Space between page items */
+        }
+
+        .page-link {
+            display: block;
+            padding: 8px 12px;
+            color: #007bff; /* Primary link color */
+            text-decoration: none;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .page-link:hover {
+            background-color: #f0f0f0; /* Light hover effect */
+        }
+
+        .page-item.active .page-link {
+            background-color: #007bff; /* Active page background */
+            color: #fff; /* White text for active page */
+            border-color: #007bff; /* Border matches background */
+        }
+
+        .page-item.disabled .page-link {
+            color: #6c757d; /* Grey color for disabled */
+            cursor: not-allowed; /* Disabled cursor */
         }
 
         .page-size-selector {
@@ -201,21 +236,20 @@
         function updatePageSize() {
             const pageSize = $('#page-size-selector').val();
 
-            // Get the current URL without query parameters
-            let currentUrl = window.location.href.split('?')[0];
+            // Get the current URL's base without query parameters
+            const currentUrl = window.location.origin + window.location.pathname;
 
-            // Get existing query parameters
-            let searchParams = new URLSearchParams(window.location.search);
+            // Create or update query parameters
+            const searchParams = new URLSearchParams(window.location.search);
 
-            // Update or add the page_size parameter
+            // Set the page_size parameter and reset to the first page
             searchParams.set('page_size', pageSize);
-
-            // Reset to the first page if changing the page size
             searchParams.set('page', '1');
 
             // Redirect to the updated URL
             window.location.href = `${currentUrl}?${searchParams.toString()}`;
         }
+
 
 
 
@@ -386,32 +420,50 @@
             </tbody>
         </table>
 
-        <div class="page-size-selector">
-            <label for="page-size-selector">Page Size:</label>
-            <select id="page-size-selector" class="form-control" onchange="updatePageSize()">
-                <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
-                <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
-                <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
-                <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
-            </select>
-            
+        <div class="pagination-container">
+            <div class="page-size-selector">
+                <label for="page-size-selector">Page Size:</label>
+                <select id="page-size-selector" class="form-control" onchange="updatePageSize()">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="all">All</option> <!-- Option to show all results -->
+                </select>
+            </div>
         </div>
         
 
-        <!-- Pagination -->
-        <nav>
-            <ul class="pagination">
-                {% if projects.has_previous %}
-                <li><a href="?page=1">&laquo; First</a></li>
-                <li><a href="?page={{ projects.previous_page_number }}">Previous</a></li>
-                {% endif %}
-                <li><span>Page {{ projects.number }} of {{ projects.paginator.num_pages }}</span></li>
-                {% if projects.has_next %}
-                <li><a href="?page={{ projects.next_page_number }}">Next</a></li>
-                <li><a href="?page={{ projects.paginator.num_pages }}">Last &raquo;</a></li>
-                {% endif %}
-            </ul>
-        </nav>
+        <div class="pagination-container">
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    {% if projects.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1" aria-label="First">
+                                &laquo; First
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ projects.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <span class="page-link">Page {{ projects.number }} of {{ projects.paginator.num_pages }}</span>
+                    </li>
+                    {% if projects.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ projects.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ projects.paginator.num_pages }}" aria-label="Last">
+                                Last &raquo;
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        
 
 
         <div class="checkbox-container">
