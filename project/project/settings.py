@@ -56,7 +56,7 @@ DATABASES = {
         "NAME": "IEC",
         "USER": "",
         "PASSWORD": "",
-        "HOST": "NUTRA-DB02",
+        "HOST": "NUTRA-DB01\\sqlexpress",
         "PORT": "",
         "OPTIONS": {
             "driver": "ODBC Driver 17 for SQL Server",
