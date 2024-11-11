@@ -54,8 +54,8 @@ DATABASES = {
     "default": {
         "ENGINE": "mssql",
         "NAME": "IEC",
-        "USER": "",
-        "PASSWORD": "",
+        "USER": "IECApp",
+        "PASSWORD": "Byre!UWXYa2e",
         "HOST": "NUTRA-DB01\\sqlexpress",
         "PORT": "",
         "OPTIONS": {
