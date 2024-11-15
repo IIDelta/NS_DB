@@ -60,7 +60,7 @@ DATABASES = {
         "PORT": "",
         "OPTIONS": {
             "driver": "ODBC Driver 17 for SQL Server",
-            "extra_params": "Trusted_Connection=yes;",
+            "extra_params": "Trusted_Connection=no;",
         },
     }
 }
