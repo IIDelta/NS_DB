@@ -1,0 +1,93 @@
+[
+    {
+        "model": "app.demographicskeyword",
+        "pk": 1,
+        "fields": {
+            "keyword": "human - adult"
+        }
+    },
+    {
+        "model": "app.demographicskeyword",
+        "pk": 2,
+        "fields": {
+            "keyword": "human - geriatrics"
+        }
+    },
+    {
+        "model": "app.demographicskeyword",
+        "pk": 3,
+        "fields": {
+            "keyword": "human - pediatrics"
+        }
+    },
+    {
+        "model": "app.demographicskeyword",
+        "pk": 4,
+        "fields": {
+            "keyword": "human - general"
+        }
+    },
+    {
+        "model": "app.demographicskeyword",
+        "pk": 5,
+        "fields": {
+            "keyword": "animal - dog"
+        }
+    },
+    {
+        "model": "app.demographicskeyword",
+        "pk": 6,
+        "fields": {
+            "keyword": "animal - cat"
+        }
+    },
+    {
+        "model": "app.demographicskeyword",
+        "pk": 7,
+        "fields": {
+            "keyword": "animal - horse"
+        }
+    },
+    {
+        "model": "app.demographicskeyword",
+        "pk": 8,
+        "fields": {
+            "keyword": "animal - cattle"
+        }
+    },
+    {
+        "model": "app.demographicskeyword",
+        "pk": 9,
+        "fields": {
+            "keyword": "animal - chicken"
+        }
+    },
+    {
+        "model": "app.demographicskeyword",
+        "pk": 10,
+        "fields": {
+            "keyword": "animal - swine"
+        }
+    },
+    {
+        "model": "app.demographicskeyword",
+        "pk": 11,
+        "fields": {
+            "keyword": "human - adolescent"
+        }
+    },
+    {
+        "model": "app.demographicskeyword",
+        "pk": 12,
+        "fields": {
+            "keyword": "human - infant"
+        }
+    },
+    {
+        "model": "app.demographicskeyword",
+        "pk": 13,
+        "fields": {
+            "keyword": "vaccines"
+        }
+    }
+]

@@ -18,6 +18,8 @@ from .models import (
     IngredientCategoryKeyword,
     ResponsiblePartyKeyword,
     RouteofAdminKeyword,
+    ProjectDemographics, 
+    DemographicsKeyword
 )
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -72,6 +74,8 @@ class ProjectListView(View):
             Prefetch("projectingredients_set", queryset=ProjectIngredients.objects.all()),  # This line is important
             Prefetch("projectresponsibleparty_set", queryset=ProjectResponsibleParty.objects.select_related("keywordid")),
             Prefetch("projectrouteofadmin_set", queryset=ProjectRouteofAdmin.objects.select_related("keywordid")),
+            Prefetch("projectdemographics_set", queryset=ProjectDemographics.objects.select_related("keywordid")),
+
         )
 
 
@@ -93,6 +97,9 @@ class ProjectListView(View):
             ]
             project.selected_route_of_admin_ids = [
                 route.keywordid_id for route in project.projectrouteofadmin_set.all()
+            ]
+            project.selected_demographics_ids = [
+                demographic.keywordid_id for demographic in project.projectdemographics_set.all()
             ]
 
         page_size = request.GET.get("page_size", 10)
@@ -119,6 +126,7 @@ class ProjectListView(View):
             "ingredient_category_keywords": IngredientCategoryKeyword.objects.all(),
             "responsible_party_keywords": ResponsiblePartyKeyword.objects.all(),
             "route_of_admin_keywords": RouteofAdminKeyword.objects.all(),
+            "demographics_keywords": DemographicsKeyword.objects.all(),  # New line
             "page_size": page_size,  # Pass the selected page size to the template
 
         }
@@ -338,3 +346,31 @@ def update_ingredients(request):
         return JsonResponse({"status": "success"})
     return JsonResponse({"error": "Invalid request"}, status=400)
 
+
+@csrf_exempt
+def update_demographics(request):
+    if request.method == "POST":
+        # For POST requests using standard form-encoded data:
+        project_id = request.POST.get("project_id")
+        demographics_ids = request.POST.getlist("demographics_ids[]")
+        
+        # Alternatively, if you send JSON, uncomment this:
+        # data = json.loads(request.body)
+        # project_id = data.get('project_id')
+        # demographics_ids = data.get('demographics_ids')
+        
+        try:
+            # Clear existing demographics for this project
+            from .models import ProjectDemographics  # import here if needed
+            ProjectDemographics.objects.filter(projectid=project_id).delete()
+            
+            # Create new entries for each selected keyword
+            for keyword_id in demographics_ids:
+                ProjectDemographics.objects.create(
+                    projectid_id=project_id,  # Using _id to directly assign the FK
+                    keywordid_id=keyword_id
+                )
+            return JsonResponse({"status": "success"})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)})
+    return JsonResponse({"error": "Invalid request"}, status=400)

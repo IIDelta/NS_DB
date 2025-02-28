@@ -221,3 +221,34 @@ class ProjectRouteofAdmin(models.Model):
         managed = False
         db_table = "ProjectRouteofAdmin"
         unique_together = (("projectid", "keywordid"),)
+
+# New Keyword Model for Demographics
+class DemographicsKeyword(models.Model):
+    keywordid = models.AutoField(db_column="KeywordID", primary_key=True)
+    keyword = models.CharField(
+        db_column="Keyword",
+        max_length=255,
+        db_collation="SQL_Latin1_General_CP1_CI_AS"
+    )
+
+    class Meta:
+        managed = True  # Django will manage this table
+        db_table = "DemographicsKeyword"
+
+
+class ProjectDemographics(models.Model):
+    entry_id = models.AutoField(primary_key=True)
+    projectid = models.ForeignKey(
+        DeltekProjectID,
+        models.DO_NOTHING,
+        db_column="ProjectID",
+        to_field="projectid"
+    )
+    keywordid = models.ForeignKey(
+        DemographicsKeyword, models.DO_NOTHING, db_column="KeywordID"
+    )
+
+    class Meta:
+        managed = True
+        db_table = "ProjectDemographics"
+        unique_together = (("projectid", "keywordid"),)

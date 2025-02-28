@@ -384,6 +384,7 @@
                     <th class="ingredients-column">Ingredients</th>
                     <th class="responsible-party-column">Responsible Party</th>
                     <th class="route-of-admin-column">Route of Admin</th>
+                    <th class="demographics-column">Demographics</th>
                 </tr>
             </thead>
             <tbody>
@@ -432,6 +433,7 @@
                                 {% endfor %}
                             </select>
                         </td>
+
                         <td class="ingredient-categories-column">
                             <select class="form-control select2-multiple-ingredients" name="ingredient_category_ids[]" multiple="multiple" data-project-id="{{ project.projectid }}">
                                 {% for keyword in ingredient_category_keywords %}
@@ -442,6 +444,7 @@
                                 {% endfor %}
                             </select>
                         </td>
+
                         <td class="ingredients-column">
                             <!-- Input field for new ingredients (AJAX-powered entry) -->
                             <select class="ingredient-input" multiple="multiple" id="ingredient-{{ project.projectid }}" data-projectid="{{ project.projectid }}">
@@ -450,6 +453,7 @@
                                 {% endfor %}
                             </select>
                         </td>
+
                         <td class="responsible-party-column">
                             <select class="form-control select2-multiple-responsible-party" name="responsible_party_ids[]" multiple="multiple" data-project-id="{{ project.projectid }}">
                                 {% for keyword in responsible_party_keywords %}
@@ -460,11 +464,22 @@
                                 {% endfor %}
                             </select>
                         </td>
+
                         <td class="route-of-admin-column">
                             <select class="form-control select2-multiple-route-admin" name="route_of_admin_ids[]" multiple="multiple" data-project-id="{{ project.projectid }}">
                                 {% for keyword in route_of_admin_keywords %}
                                     <option value="{{ keyword.keywordid }}" 
                                             {% if keyword.keywordid in project.selected_route_of_admin_ids %} selected {% endif %}>
+                                        {{ keyword.keyword }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td class="demographics-column">
+                            <select class="form-control select2-multiple-demographics" name="demographics_ids[]" multiple="multiple" data-project-id="{{ project.projectid }}">
+                                {% for keyword in demographics_keywords %}
+                                    <option value="{{ keyword.keywordid }}"
+                                            {% if keyword.keywordid in project.selected_demographics_ids %} selected {% endif %}>
                                         {{ keyword.keyword }}
                                     </option>
                                 {% endfor %}
@@ -895,6 +910,35 @@ $(document).ready(function() {
                 },
                 error: function(error) {
                     console.error("Error updating ingredients:", error);
+                }
+            });
+        });
+    });
+
+    $(document).ready(function() {
+        $('.select2-multiple-demographics').select2({
+            placeholder: "Select Demographics",
+            allowClear: false,
+            width: '100%'
+        });
+
+        $('.select2-multiple-demographics').on('change', function() {
+            var projectId = $(this).data('project-id');
+            var demographicsIds = $(this).val();  // Array of selected keyword IDs
+            
+            $.ajax({
+                type: 'POST',
+                url: '{% url "update-demographics" %}',
+                data: {
+                    'project_id': projectId,
+                    'demographics_ids[]': demographicsIds,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    console.log('Demographics updated successfully:', response);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error updating demographics:', error);
                 }
             });
         });
