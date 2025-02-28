@@ -19,6 +19,10 @@ class DeltekProjectID(models.Model):
         "Client", models.DO_NOTHING, db_column="SponsorSerial", blank=True, null=True
     )
 
+    @property
+    def sponsorname(self):
+        return self.sponsorserial.sponsorname if self.sponsorserial else ""
+
     class Meta:
         managed = False
         db_table = "DeltekProjectID"

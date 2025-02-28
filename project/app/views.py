@@ -95,13 +95,14 @@ class ProjectListView(View):
                 route.keywordid_id for route in project.projectrouteofadmin_set.all()
             ]
 
-        # Get page size from request
         page_size = request.GET.get("page_size", 10)
-        
         if page_size == 'all':
-            page_size = projects.count()  # Show all projects if 'all' is selected
+            page_size = projects.count()
         else:
-            page_size = int(page_size)
+            try:
+                page_size = int(page_size)
+            except ValueError:
+                page_size = 10
         
         # Pagination logic
         paginator = Paginator(projects, page_size)
@@ -122,9 +123,18 @@ class ProjectListView(View):
 
         }
 
+        # Persist current GET parameters (except 'page') for pagination links
+        query_params = request.GET.copy()
+        if 'page' in query_params:
+            query_params.pop('page')
+        context['query_string'] = query_params.urlencode()
+
+
         return render(request, "project_list.html", context)
 
  # AJAX endpoint to add a keyword
+    @csrf_exempt
+    @staticmethod
     def add_keyword(request):
         if request.method == "POST":
             project_id = request.POST.get("project_id")
@@ -165,6 +175,8 @@ class ProjectListView(View):
                 return JsonResponse({"status": "error", "message": str(e)})
     
     # AJAX endpoint to delete a keyword
+    @csrf_exempt
+    @staticmethod
     def delete_keyword(request):
         if request.method == "POST":
             project_id = request.POST.get("project_id")
@@ -212,10 +224,10 @@ def update_project_status(request):
             if not project_id or not keyword_id:
                 return JsonResponse({"error": "Missing project_id or keyword_id"}, status=400)
 
-            # Update the project status here (replace with your actual logic)
-            project_status = ProjectStatus.objects.get(projectid=project_id)
-            project_status.keywordid_id = keyword_id  # or however your foreign key is set up
-            project_status.save()
+            ProjectStatus.objects.update_or_create(
+                projectid_id=project_id,
+                defaults={'keywordid_id': keyword_id}
+            )
 
             return JsonResponse({"status": "success", "message": "Status updated successfully"})
 
