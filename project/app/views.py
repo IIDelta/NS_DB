@@ -441,3 +441,19 @@ def update_demographics(request):
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 
+@csrf_exempt
+def search_ingredients(request):
+    """
+    Returns JSON results for Select2 AJAX search.
+    Searches for distinct ingredient values in the ProjectIngredients table.
+    """
+    term = request.GET.get('term', '')
+    suggestions = list(
+        ProjectIngredients.objects.filter(keywordid__icontains=term)
+        .values_list('keywordid', flat=True)
+        .distinct()[:10]
+    )
+    data = {
+        'results': [{'id': suggestion, 'text': suggestion} for suggestion in suggestions]
+    }
+    return JsonResponse(data)
