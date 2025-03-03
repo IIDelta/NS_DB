@@ -82,12 +82,5 @@
         "fields": {
             "keyword": "human - infant"
         }
-    },
-    {
-        "model": "app.demographicskeyword",
-        "pk": 13,
-        "fields": {
-            "keyword": "vaccines"
-        }
     }
 ]

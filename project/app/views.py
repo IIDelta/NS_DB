@@ -102,6 +102,43 @@ class ProjectListView(View):
                 demographic.keywordid_id for demographic in project.projectdemographics_set.all()
             ]
 
+                # Process dynamic filters: Look for keys named 'field_X' and 'value_X'
+        field_value_pairs = []
+        for key, val in request.GET.items():
+            if key.startswith('field_'):
+                index = key.split('_')[1]
+                field_name = val  # e.g., 'ProjectID'
+                value_key = f'value_{index}'
+                filter_value = request.GET.get(value_key, None)
+                if filter_value:
+                    field_value_pairs.append((field_name, filter_value))
+
+        # Apply each dynamic filter
+        for (field_name, filter_value) in field_value_pairs:
+            if field_name == 'ProjectID':
+                projects = projects.filter(projectid__icontains=filter_value)
+            elif field_name == 'ProjectName':
+                projects = projects.filter(projectname__icontains=filter_value)
+            elif field_name == 'SponsorName':
+                projects = projects.filter(sponsorserial__sponsorname__icontains=filter_value)
+            elif field_name == 'Deliverables':
+                projects = projects.filter(projectdeliverables__keywordid__keyword__icontains=filter_value).distinct()
+            elif field_name == 'Status':
+                projects = projects.filter(projectstatus__keywordid__keyword__icontains=filter_value)
+            elif field_name == 'TherapeuticAreas':
+                projects = projects.filter(projecttherapeuticarea__keywordid__keyword__icontains=filter_value)
+            elif field_name == 'IngredientCategories':
+                projects = projects.filter(projectingredientcategory__keywordid__keyword__icontains=filter_value)
+            elif field_name == 'Ingredients':
+                projects = projects.filter(projectingredients__keywordid__icontains=filter_value).distinct()
+            elif field_name == 'ResponsibleParty':
+                projects = projects.filter(projectresponsibleparty__keywordid__keyword__icontains=filter_value)
+            elif field_name == 'RouteOfAdmin':
+                projects = projects.filter(projectrouteofadmin__keywordid__keyword__icontains=filter_value)
+            elif field_name == 'Demographics':
+                projects = projects.filter(projectdemographics__keywordid__keyword__icontains=filter_value)
+
+
         page_size = request.GET.get("page_size", 10)
         if page_size == 'all':
             page_size = projects.count()
@@ -374,3 +411,5 @@ def update_demographics(request):
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)})
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+
