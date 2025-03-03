@@ -281,68 +281,71 @@
 </head>
 <body>
     <div class="d-inline-flex align-items-center my-4">
-        <h1 class="mb-0">Projects</h1>
-        <div class="dropdown ml-2">
-            <button class="btn btn-secondary dropdown-toggle" type="button" id="columnsDropdown"
-                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Columns
-            </button>
-            <div class="dropdown-menu p-3" aria-labelledby="columnsDropdown">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="showDeliverables" checked
-                           onclick="toggleColumn('deliverables-column')">
-                    <label class="form-check-label" for="showDeliverables">Show Deliverables</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="showStatus" checked
-                           onclick="toggleColumn('status-column')">
-                    <label class="form-check-label" for="showStatus">Show Project Status</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="showTherapeuticAreas" checked
-                           onclick="toggleColumn('therapeutic-areas-column')">
-                    <label class="form-check-label" for="showTherapeuticAreas">Show Therapeutic Areas</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="showIngredientCategories" checked
-                           onclick="toggleColumn('ingredient-categories-column')">
-                    <label class="form-check-label" for="showIngredientCategories">Show Ingredient Categories</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="showIngredients" checked
-                           onclick="toggleColumn('ingredients-column')">
-                    <label class="form-check-label" for="showIngredients">Show Ingredients</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="showResponsibleParty" checked
-                           onclick="toggleColumn('responsible-party-column')">
-                    <label class="form-check-label" for="showResponsibleParty">Show Responsible Party</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="showRouteOfAdmin" checked
-                           onclick="toggleColumn('route-of-admin-column')">
-                    <label class="form-check-label" for="showRouteOfAdmin">Show Route of Admin</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="showDemographics" checked onclick="toggleColumn('demographics-column')">
-                    <label class="form-check-label" for="showDemographics">Show Demographics</label>
-                </div>
-            </div>
-        </div>
+        <h1 class="mb-0">Nutrasource Projects Database</h1>
     </div>
-    
-
 
 <!-- Filter form -->
 <form method="get" id="dynamic-filter-form" class="mb-3">
-  <!-- Container for dynamic filter rows -->
-  <div id="filter-rows"></div>
-  <div class="mt-2">
-    <button type="button" class="btn btn-primary mr-2" id="add-filter-button">Add Filter</button>
-    <button type="submit" class="btn btn-success mr-2">Apply Filters</button>
-    <button type="button" id="clear-filters-button" class="btn btn-warning">Clear Filters</button>
-  </div>
-</form>
+    <!-- Container for dynamic filter rows -->
+    <div id="filter-rows"></div>
+    <!-- Updated button area -->
+    <div class="d-flex align-items-center mt-2">
+      <div class="btn-group mr-2" role="group" aria-label="Filter Actions">
+        <button type="button" class="btn btn-primary" id="add-filter-button">Add Filter</button>
+        <button type="submit" class="btn btn-success">Apply Filters</button>
+        <button type="button" id="clear-filters-button" class="btn btn-warning">Clear Filters</button>
+      </div>
+      <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="columnsDropdown"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Show/Hide Columns
+        </button>
+        <div class="dropdown-menu p-3" aria-labelledby="columnsDropdown">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="showDeliverables" checked
+                   onclick="toggleColumn('deliverables-column')">
+            <label class="form-check-label" for="showDeliverables">Deliverables</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="showStatus" checked
+                   onclick="toggleColumn('status-column')">
+            <label class="form-check-label" for="showStatus">Project Status</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="showTherapeuticAreas" checked
+                   onclick="toggleColumn('therapeutic-areas-column')">
+            <label class="form-check-label" for="showTherapeuticAreas">Therapeutic Areas</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="showIngredientCategories" checked
+                   onclick="toggleColumn('ingredient-categories-column')">
+            <label class="form-check-label" for="showIngredientCategories">Ingredient Categories</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="showIngredients" checked
+                   onclick="toggleColumn('ingredients-column')">
+            <label class="form-check-label" for="showIngredients">Ingredients</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="showResponsibleParty" checked
+                   onclick="toggleColumn('responsible-party-column')">
+            <label class="form-check-label" for="showResponsibleParty">Responsible Party</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="showRouteOfAdmin" checked
+                   onclick="toggleColumn('route-of-admin-column')">
+            <label class="form-check-label" for="showRouteOfAdmin">Route of Admin</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="showDemographics" checked
+                   onclick="toggleColumn('demographics-column')">
+            <label class="form-check-label" for="showDemographics">Demographics</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  
 
 <script>
     // Mapping of display labels to field names expected by the view
@@ -361,6 +364,13 @@
     };
     
     let filterCount = 0;
+
+        // Function to apply the dynamic filters by reloading the page with serialized form values.
+    function applyDynamicFilters() {
+        const form = document.getElementById('dynamic-filter-form');
+        const queryString = $(form).serialize();
+        window.location.href = window.location.pathname + (queryString ? '?' + queryString : '');
+    }
     
     // Updated addFilterRow accepts defaultField and defaultValue parameters.
     function addFilterRow(defaultField, defaultValue) {
@@ -382,7 +392,6 @@
             option.textContent = label;
             select.appendChild(option);
         }
-        // Set the select value if provided
         if (defaultField) {
             select.value = defaultField;
         }
@@ -410,6 +419,7 @@
         removeBtn.textContent = 'Remove';
         removeBtn.addEventListener('click', function() {
             rowDiv.remove();
+            applyDynamicFilters();
         });
         colRemove.appendChild(removeBtn);
     
@@ -431,21 +441,19 @@
         window.location.href = window.location.pathname;
     });
     
-    // On page load, read GET parameters to rebuild dynamic filter rows.
+    // On page load, rebuild dynamic filter rows from GET parameters.
     $(document).ready(function() {
         const params = new URLSearchParams(window.location.search);
-        // Iterate over keys starting with 'field_'
         for (const key of params.keys()) {
             if (key.startsWith('field_')) {
                 const index = key.split('_')[1];
                 const fieldVal = params.get(key);
                 const valueVal = params.get('value_' + index);
-                // Add a filter row pre-populated with these values.
                 addFilterRow(fieldVal, valueVal);
             }
         }
     });
-    </script>
+</script>
     
 
 
@@ -718,23 +726,32 @@
     }
 
     function updateDeliverables(project_id) {
-        const selectedDeliverables = $(`#deliverables-${project_id}`).val(); // Get selected values
-        $.ajax({
-            type: "POST",
-            url: "/update-deliverables/",
-            data: {
-                project_id: project_id,
-                deliverable_ids: selectedDeliverables,
-                csrfmiddlewaretoken: getCookie('csrftoken') // Ensure CSRF token is included
-            },
-            success: function(response) {
-                console.log('Deliverables updated successfully');
-            },
-            error: function(xhr, status, error) {
-                console.error('Error updating deliverables:', error);
+    const selectedDeliverables = $(`#deliverables-${project_id}`).val();
+    $.ajax({
+        type: "POST",
+        url: window.location.origin + "{% url 'update-deliverables' %}",
+        data: {
+            project_id: project_id,
+            deliverable_ids: selectedDeliverables,
+            csrfmiddlewaretoken: getCookie('csrftoken')
+        },
+        success: function(response) {
+            console.log('Deliverables updated successfully');
+            // Option 2a: Show a toast notification indicating success.
+            // Option 2b: Optionally, trigger an AJAX call to re-fetch this project's data
+            // and update the row in the DOM.
+            // For example, if your response contained the new list:
+            if(response.new_deliverable_ids){
+                // Update the DOM (this assumes your select's options match your keywords).
+                $(`#deliverables-${project_id}`).val(response.new_deliverable_ids).trigger('change');
             }
-        });
-    }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error updating deliverables:', error);
+        }
+    });
+}
+
 
 
 
@@ -828,7 +845,7 @@
 
         $.ajax({
             type: 'POST',
-            url: '{% url "update-deliverables" %}',
+            url: '{% url "update-deliverables" %}?',
             data: {
                 'project_id': projectId,
                 'deliverable_ids[]': deliverableIds,

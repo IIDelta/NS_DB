@@ -3,6 +3,8 @@ from django.shortcuts import render
 from django.views import View
 from django.db.models import Prefetch
 from django.http import JsonResponse
+from django.db import transaction
+from django.db.models import Q  # Add at the top of your file if not already imported
 from .models import (
     DeltekProjectID,
     ProjectDeliverables,
@@ -42,6 +44,8 @@ class ProjectListView(View):
 
         # Query projects with filtering
         projects = DeltekProjectID.objects.all()
+        projects = projects.order_by('projectid')
+
 
         # Apply filters
         if filters["ProjectID"]:
@@ -78,32 +82,8 @@ class ProjectListView(View):
 
         )
 
-
-        for project in projects:
-            project.selected_deliverable_ids = [
-                deliverable.keywordid_id for deliverable in project.projectdeliverables_set.all()
-            ]
-            project.selected_therapeutic_areas = [
-                therapeutic_area.keywordid_id for therapeutic_area in project.projecttherapeuticarea_set.all()
-            ]
-            project.selected_ingredient_category_ids = [
-                ingredient.keywordid_id for ingredient in project.projectingredientcategory_set.all()
-            ]
-            project.selected_ingredient_values = [
-                ingredient.keywordid for ingredient in project.projectingredients_set.all()
-            ]
-            project.selected_responsible_party_ids = [
-                party.keywordid_id for party in project.projectresponsibleparty_set.all()
-            ]
-            project.selected_route_of_admin_ids = [
-                route.keywordid_id for route in project.projectrouteofadmin_set.all()
-            ]
-            project.selected_demographics_ids = [
-                demographic.keywordid_id for demographic in project.projectdemographics_set.all()
-            ]
-
-                # Process dynamic filters: Look for keys named 'field_X' and 'value_X'
-        field_value_pairs = []
+        # Process dynamic filters: Group filters by field type.
+        filter_groups = {}
         for key, val in request.GET.items():
             if key.startswith('field_'):
                 index = key.split('_')[1]
@@ -111,33 +91,82 @@ class ProjectListView(View):
                 value_key = f'value_{index}'
                 filter_value = request.GET.get(value_key, None)
                 if filter_value:
-                    field_value_pairs.append((field_name, filter_value))
+                    filter_groups.setdefault(field_name, []).append(filter_value)
 
-        # Apply each dynamic filter
-        for (field_name, filter_value) in field_value_pairs:
-            if field_name == 'ProjectID':
-                projects = projects.filter(projectid__icontains=filter_value)
-            elif field_name == 'ProjectName':
-                projects = projects.filter(projectname__icontains=filter_value)
-            elif field_name == 'SponsorName':
-                projects = projects.filter(sponsorserial__sponsorname__icontains=filter_value)
-            elif field_name == 'Deliverables':
-                projects = projects.filter(projectdeliverables__keywordid__keyword__icontains=filter_value).distinct()
-            elif field_name == 'Status':
-                projects = projects.filter(projectstatus__keywordid__keyword__icontains=filter_value)
-            elif field_name == 'TherapeuticAreas':
-                projects = projects.filter(projecttherapeuticarea__keywordid__keyword__icontains=filter_value)
-            elif field_name == 'IngredientCategories':
-                projects = projects.filter(projectingredientcategory__keywordid__keyword__icontains=filter_value)
-            elif field_name == 'Ingredients':
-                projects = projects.filter(projectingredients__keywordid__icontains=filter_value).distinct()
-            elif field_name == 'ResponsibleParty':
-                projects = projects.filter(projectresponsibleparty__keywordid__keyword__icontains=filter_value)
-            elif field_name == 'RouteOfAdmin':
-                projects = projects.filter(projectrouteofadmin__keywordid__keyword__icontains=filter_value)
-            elif field_name == 'Demographics':
-                projects = projects.filter(projectdemographics__keywordid__keyword__icontains=filter_value)
+        # Apply each group of filters with OR logic for the same field.
+        for field_name, values in filter_groups.items():
+            q_obj = Q()
+            for v in values:
+                if field_name == 'ProjectID':
+                    q_obj |= Q(projectid__icontains=v)
+                elif field_name == 'ProjectName':
+                    q_obj |= Q(projectname__icontains=v)
+                elif field_name == 'SponsorName':
+                    q_obj |= Q(sponsorserial__sponsorname__icontains=v)
+                elif field_name == 'Deliverables':
+                    q_obj |= Q(projectdeliverables__keywordid__keyword__icontains=v)
+                elif field_name == 'Status':
+                    q_obj |= Q(projectstatus__keywordid__keyword__icontains=v)
+                elif field_name == 'TherapeuticAreas':
+                    q_obj |= Q(projecttherapeuticarea__keywordid__keyword__icontains=v)
+                elif field_name == 'IngredientCategories':
+                    q_obj |= Q(projectingredientcategory__keywordid__keyword__icontains=v)
+                elif field_name == 'Ingredients':
+                    q_obj |= Q(projectingredients__keywordid__icontains=v)
+                elif field_name == 'ResponsibleParty':
+                    q_obj |= Q(projectresponsibleparty__keywordid__keyword__icontains=v)
+                elif field_name == 'RouteOfAdmin':
+                    q_obj |= Q(projectrouteofadmin__keywordid__keyword__icontains=v)
+                elif field_name == 'Demographics':
+                    q_obj |= Q(projectdemographics__keywordid__keyword__icontains=v)
+            projects = projects.filter(q_obj)
 
+        # *** New code: Clear prefetch cache to force fresh retrieval of updated related data ***
+        for project in projects:
+            if hasattr(project, '_prefetched_objects_cache'):
+                del project._prefetched_objects_cache
+
+        # Get a list of project IDs from the current filtered QuerySet
+        project_ids = list(projects.values_list('projectid', flat=True))
+
+        # Manual prefetching: Query each linking table once
+        deliverables_map = {}
+        for pd in ProjectDeliverables.objects.filter(projectid__in=project_ids).values('projectid', 'keywordid'):
+            deliverables_map.setdefault(pd['projectid'], []).append(pd['keywordid'])
+
+        therapeutic_areas_map = {}
+        for ta in ProjectTherapeuticArea.objects.filter(projectid__in=project_ids).values('projectid', 'keywordid'):
+            therapeutic_areas_map.setdefault(ta['projectid'], []).append(ta['keywordid'])
+
+        ingredient_categories_map = {}
+        for ic in ProjectIngredientCategory.objects.filter(projectid__in=project_ids).values('projectid', 'keywordid'):
+            ingredient_categories_map.setdefault(ic['projectid'], []).append(ic['keywordid'])
+
+        ingredients_map = {}
+        for pi in ProjectIngredients.objects.filter(projectid__in=project_ids).values('projectid', 'keywordid'):
+            ingredients_map.setdefault(pi['projectid'], []).append(pi['keywordid'])
+
+        responsible_party_map = {}
+        for rp in ProjectResponsibleParty.objects.filter(projectid__in=project_ids).values('projectid', 'keywordid'):
+            responsible_party_map.setdefault(rp['projectid'], []).append(rp['keywordid'])
+
+        route_of_admin_map = {}
+        for ra in ProjectRouteofAdmin.objects.filter(projectid__in=project_ids).values('projectid', 'keywordid'):
+            route_of_admin_map.setdefault(ra['projectid'], []).append(ra['keywordid'])
+
+        demographics_map = {}
+        for pdemo in ProjectDemographics.objects.filter(projectid__in=project_ids).values('projectid', 'keywordid'):
+            demographics_map.setdefault(pdemo['projectid'], []).append(pdemo['keywordid'])
+
+        # Assign the fresh values to each project
+        for project in projects:
+            project.selected_deliverable_ids = deliverables_map.get(project.projectid, [])
+            project.selected_therapeutic_areas = therapeutic_areas_map.get(project.projectid, [])
+            project.selected_ingredient_category_ids = ingredient_categories_map.get(project.projectid, [])
+            project.selected_ingredient_values = ingredients_map.get(project.projectid, [])
+            project.selected_responsible_party_ids = responsible_party_map.get(project.projectid, [])
+            project.selected_route_of_admin_ids = route_of_admin_map.get(project.projectid, [])
+            project.selected_demographics_ids = demographics_map.get(project.projectid, [])
 
         page_size = request.GET.get("page_size", 10)
         if page_size == 'all':
@@ -290,17 +319,16 @@ def update_deliverables(request):
     if request.method == "POST":
         project_id = request.POST.get("project_id")
         deliverable_ids = request.POST.getlist("deliverable_ids[]")
-
-        # Clear existing deliverables
-        ProjectDeliverables.objects.filter(projectid=project_id).delete()
-
-        # Add selected deliverables
-        for keyword_id in deliverable_ids:
-            ProjectDeliverables.objects.create(projectid_id=project_id, keywordid_id=keyword_id)
-
-        return JsonResponse({"status": "success"})
+        with transaction.atomic():
+            ProjectDeliverables.objects.filter(projectid=project_id).delete()
+            for keyword_id in deliverable_ids:
+                ProjectDeliverables.objects.create(
+                    projectid_id=project_id, 
+                    keywordid_id=keyword_id
+                )
+        # Return the updated list in the response
+        return JsonResponse({"status": "success", "new_deliverable_ids": deliverable_ids})
     return JsonResponse({"error": "Invalid request"}, status=400)
-
 
         
 @csrf_exempt
