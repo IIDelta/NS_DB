@@ -496,17 +496,20 @@
 
                         <td class="status-column">
                             <select id="status-dropdown-{{ project.projectid }}" onchange="updateStatus('{{ project.projectid }}')">
-                                <option value="">None</option>
                                 {% for status in status_keywords %}
                                     <option value="{{ status.keywordid }}"
-                                        {% if project.projectstatus_set.first and project.projectstatus_set.first.keywordid_id == status.keywordid %}selected{% endif %}>
+                                        {% if project.projectstatus_set.first %}
+                                            {% if project.projectstatus_set.first.keywordid_id == status.keywordid %}selected{% endif %}
+                                        {% else %}
+                                            {% if status.keyword|lower == "none" %}selected{% endif %}
+                                        {% endif %}>
                                         {{ status.keyword }}
                                     </option>
                                 {% endfor %}
                             </select>
-                            
-                                          
                         </td>
+                        
+                        
                         <td class="therapeutic-areas-column">
                             <select id="therapeutic-areas-{{ project.projectid }}" 
                                     class="therapeutic-areas-dropdown" 
