@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project List</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+
+    <style>
+                /* Force all Select2 containers to use 100% width within table cells */
+        .table td .select2-container {
+            width: 100% !important;
+            min-width: 0 !important; 
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .questionnaires-column {
+            min-width: 200px;
+            max-width: 400px; /* Adjust as needed */
+        }
+
+        /* Ensure Select2 takes full width */
+        .table td .select2-container {
+            width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        .filter-container-horizontal {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-form-horizontal {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .filter-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .filter-item {
+            flex: 1 1 15%; /* Control size of each filter field */
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        table th, table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+
+        th.sticky {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+            z-index: 2;
+        }
+
+        /* General styling for all select elements within table cells */
+        td select {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Styling specifically for Select2 elements */
+        td .select2-container--default .select2-selection--multiple {
+            text-align: left !important;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            padding: 4px;
+            min-height: 40px; /* Ensure consistent height */
+        }
+
+        /* Adjust padding and margins for consistent alignment */
+        td .select2-selection--multiple {
+            min-height: 40px; /* Ensure consistent height */
+        }
+
+        /* Add styling for single select Select2 */
+        td .select2-container--default .select2-selection--single {
+            border: 1px solid #ced4da;
+            display: flex;
+            align-items: center;
+            min-height: 40px; /* Ensure consistent height */
+        }
+
+        /* Additional styling for regular (non-Select2) select elements */
+        td select:not(.select2-hidden-accessible) {
+            background-color: #f8f9fa; /* Light background for distinction */
+        }
+
+                /* Styling for the Project Status select element */
+        td .project-status-select {
+            width: 100%; /* Ensures the select takes the full width of the table cell */
+            border: 1px solid #ced4da; /* Standard border */
+            border-radius: 0.25rem; /* Rounded corners */
+            padding: 4px; /* Padding for better appearance */
+            font-size: 14px; /* Adjust font size for consistency */
+            background-color: #f9f9f9; /* Light background for better readability */
+            box-sizing: border-box; /* Include padding and border in the total width */
+        }
+
+        /* Add hover and focus states */
+        td .project-status-select:hover {
+            border-color: #b5b5b5; /* Darken border on hover */
+        }
+
+        td .project-status-select:focus {
+            border-color: #80bdff; /* Highlight border when focused */
+            outline: none; /* Remove default outline */
+            box-shadow: 0 0 3px rgba(128, 189, 255, 0.5); /* Add subtle shadow */
+        }
+
+        html, body {
+            overflow-x: hidden;
+        }
+
+        th.sticky {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+            z-index: 2;
+        }
+        .pagination-container {
+            display: flex;
+            justify-content: center; /* Center the pagination */
+            margin-top: 20px; /* Add some space above */
+        }
+
+        .pagination {
+            display: inline-flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .page-item {
+            margin: 0 5px; /* Space between page items */
+        }
+
+        .page-link {
+            display: block;
+            padding: 8px 12px;
+            color: #007bff; /* Primary link color */
+            text-decoration: none;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .page-link:hover {
+            background-color: #f0f0f0; /* Light hover effect */
+        }
+
+        .page-item.active .page-link {
+            background-color: #007bff; /* Active page background */
+            color: #fff; /* White text for active page */
+            border-color: #007bff; /* Border matches background */
+        }
+
+        .page-item.disabled .page-link {
+            color: #6c757d; /* Grey color for disabled */
+            cursor: not-allowed; /* Disabled cursor */
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+        }
+
+        .page-size-selector select {
+            margin-left: 5px;
+            width: 100px;
+        }
+
+        .project-id {
+            min-width: 50px;
+            max-width: 200px;
+        }
+        .project-name{
+            min-width: 150px;
+            max-width: 300px;
+        }
+        .sponsor-name{  
+            min-width: 150px;
+            max-width: 300px;
+        }
+        .deliverables-column{
+            min-width: 200px;
+            max-width: 300px;
+        }
+        .status-column{
+            min-width: 110px;
+            max-width: 300px;
+        }
+        .therapeutic-areas-column{
+            min-width: 200px;
+            max-width: 300px;
+        }
+        .ingredient-categories-column{
+            min-width: 200px;
+            max-width: 300px;
+        }
+        .ingredients-column{
+            min-width: 200px;
+            max-width: 300px;
+        }
+        .responsible-party-column{
+            min-width: 200px;
+            max-width: 300px;
+        }
+        .route-of-admin-column{
+            min-width: 200px;
+            max-width: 300px;
+        }
+    </style>
+    <script>
+        $(document).ready(function() {
+            // Toggle filter visibility
+            $('#toggle-filter-button').click(function() {
+                $('#filter-container').toggle();
+                $(this).text(function(i, text) {
+                    return text === "Show Filters" ? "Hide Filters" : "Show Filters";
+                });
+            });
+
+            // Clear all filter fields within the filter form
+            $('#clear-filters-button').click(function() {
+                // Clear form fields
+                $('#filter-form input').val('');
+                $('#filter-form select').val(null).trigger('change');
+
+                // Reload the page with no query parameters
+                window.location.href = window.location.pathname;
+            });
+
+        });
+        // On page load, set the dropdown value to the current page_size from the URL
+        $(document).ready(function() {
+            const searchParams = new URLSearchParams(window.location.search);
+            const pageSize = searchParams.get('page_size') || '10'; // Default to 10 if not set
+            $('#page-size-selector').val(pageSize); // Set the dropdown to the current page size
+        });
+
+        function updatePageSize() {
+            const pageSize = $('#page-size-selector').val();
+
+            // Get the current URL's base without query parameters
+            const currentUrl = window.location.origin + window.location.pathname;
+
+            // Create or update query parameters
+            const searchParams = new URLSearchParams(window.location.search);
+
+            // Set the page_size parameter and reset to the first page
+            searchParams.set('page_size', pageSize);
+            searchParams.set('page', '1');
+
+            // Redirect to the updated URL
+            window.location.href = `${currentUrl}?${searchParams.toString()}`;
+        }
+
+        function toggleColumn(columnClass) {
+            const elements = document.getElementsByClassName(columnClass);
+            for (let i = 0; i < elements.length; i++) {
+                elements[i].classList.toggle('hidden');
+            }
+        }
+
+        function toggleCheckboxes() {
+            console.log('Toggling checkboxes'); // Debugging: Log when function is called
+            const checkboxes = document.getElementById('checkboxes');
+            checkboxes.style.display = checkboxes.style.display === 'none' ? 'block' : 'none';
+            console.log('Checkboxes visibility toggled to:', checkboxes.style.display); // Debugging: Log the new display value
+        }
+    </script>
+
+</head>
+<body>
+    <div class="d-inline-flex align-items-center my-4">
+        <h1>Filtered Projects (Starts with 'T', Ends with 'C')</h1>
+    </div>
+
+<!-- Filter form -->
+<form method="get" id="dynamic-filter-form" class="mb-3">
+    <!-- Container for dynamic filter rows -->
+    <div id="filter-rows"></div>
+    <!-- Updated button area -->
+
+
+    <div class="d-flex align-items-center mt-2 mb-3">
+        <div class="dropdown">
+           <button class="btn btn-secondary dropdown-toggle" type="button" id="columnsDropdown"
+                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+             Show/Hide Columns
+           </button>
+           <div class="dropdown-menu p-3" aria-labelledby="columnsDropdown">
+             <div class="form-check">
+               <input class="form-check-input" type="checkbox" id="showProjectId" checked disabled> <label class="form-check-label" for="showProjectId">Project ID</label>
+             </div>
+              <div class="form-check">
+               <input class="form-check-input" type="checkbox" id="showProjectName" checked disabled> <label class="form-check-label" for="showProjectName">Project Name</label>
+             </div>
+              <div class="form-check">
+               <input class="form-check-input" type="checkbox" id="showSponsorName" checked disabled> <label class="form-check-label" for="showSponsorName">Sponsor Name</label>
+             </div>
+             <div class="form-check">
+               <input class="form-check-input" type="checkbox" id="showQuestionnaires" checked onclick="toggleColumn('questionnaires-column')"> <label class="form-check-label" for="showQuestionnaires">Questionnaires</label>
+             </div>
+             <hr/> <div class="form-check">
+               <input class="form-check-input" type="checkbox" value="" id="showDeliverables" onclick="toggleColumn('deliverables-column')">
+               <label class="form-check-label" for="showDeliverables">Deliverables</label>
+             </div>
+             <div class="form-check">
+               <input class="form-check-input" type="checkbox" value="" id="showStatus" onclick="toggleColumn('status-column')">
+               <label class="form-check-label" for="showStatus">Project Status</label>
+             </div>
+             <div class="form-check">
+               <input class="form-check-input" type="checkbox" value="" id="showTherapeuticAreas" onclick="toggleColumn('therapeutic-areas-column')">
+               <label class="form-check-label" for="showTherapeuticAreas">Therapeutic Areas</label>
+             </div>
+             <div class="form-check">
+               <input class="form-check-input" type="checkbox" value="" id="showIngredientCategories" onclick="toggleColumn('ingredient-categories-column')">
+               <label class="form-check-label" for="showIngredientCategories">Ingredient Categories</label>
+             </div>
+             <div class="form-check">
+               <input class="form-check-input" type="checkbox" value="" id="showIngredients" onclick="toggleColumn('ingredients-column')">
+               <label class="form-check-label" for="showIngredients">Ingredients</label>
+             </div>
+             <div class="form-check">
+               <input class="form-check-input" type="checkbox" value="" id="showResponsibleParty" onclick="toggleColumn('responsible-party-column')">
+               <label class="form-check-label" for="showResponsibleParty">Responsible Party</label>
+             </div>
+             <div class="form-check">
+               <input class="form-check-input" type="checkbox" value="" id="showRouteOfAdmin" onclick="toggleColumn('route-of-admin-column')">
+               <label class="form-check-label" for="showRouteOfAdmin">Route of Admin</label>
+             </div>
+              <div class="form-check">
+               <input class="form-check-input" type="checkbox" value="" id="showDemographics" onclick="toggleColumn('demographics-column')">
+               <label class="form-check-label" for="showDemographics">Demographics</label>
+             </div>
+           </div>
+         </div>
+   </div>
+
+  </form>
+  
+
+<script>
+    // Mapping of display labels to field names expected by the view
+    const FILTER_FIELDS = {
+        "Project ID": "ProjectID",
+        "Project Name": "ProjectName",
+        "Sponsor Name": "SponsorName",
+        "Deliverables": "Deliverables",
+        "Status": "Status",
+        "Therapeutic Areas": "TherapeuticAreas",
+        "Ingredient Categories": "IngredientCategories",
+        "Ingredients": "Ingredients",
+        "Responsible Party": "ResponsibleParty",
+        "Route of Admin": "RouteOfAdmin",
+        "Demographics": "Demographics"
+    };
+    
+    let filterCount = 0;
+
+        // Function to apply the dynamic filters by reloading the page with serialized form values.
+    function applyDynamicFilters() {
+        const form = document.getElementById('dynamic-filter-form');
+        const queryString = $(form).serialize();
+        window.location.href = window.location.pathname + (queryString ? '?' + queryString : '');
+    }
+    
+    // Updated addFilterRow accepts defaultField and defaultValue parameters.
+    function addFilterRow(defaultField, defaultValue) {
+        filterCount++;
+        
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'form-row mb-2 align-items-center';
+        rowDiv.id = 'filter-row-' + filterCount;
+    
+        // Dropdown for "Filter By"
+        const colField = document.createElement('div');
+        colField.className = 'col-4';
+        const select = document.createElement('select');
+        select.className = 'form-control';
+        select.name = `field_${filterCount}`;
+        for (const [label, fieldName] of Object.entries(FILTER_FIELDS)) {
+            const option = document.createElement('option');
+            option.value = fieldName;
+            option.textContent = label;
+            select.appendChild(option);
+        }
+        if (defaultField) {
+            select.value = defaultField;
+        }
+        colField.appendChild(select);
+    
+        // Input for value
+        const colValue = document.createElement('div');
+        colValue.className = 'col-5';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = `value_${filterCount}`;
+        input.placeholder = 'Enter value...';
+        input.className = 'form-control';
+        if (defaultValue) {
+            input.value = defaultValue;
+        }
+        colValue.appendChild(input);
+    
+        // Remove button
+        const colRemove = document.createElement('div');
+        colRemove.className = 'col-3';
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn btn-danger';
+        removeBtn.textContent = 'Remove';
+        removeBtn.addEventListener('click', function() {
+            rowDiv.remove();
+            applyDynamicFilters();
+        });
+        colRemove.appendChild(removeBtn);
+    
+        // Assemble the row and append it to the container
+        rowDiv.appendChild(colField);
+        rowDiv.appendChild(colValue);
+        rowDiv.appendChild(colRemove);
+        document.getElementById('filter-rows').appendChild(rowDiv);
+    }
+    
+    // When "Add Filter" is clicked, add an empty filter row.
+    document.getElementById('add-filter-button').addEventListener('click', function() {
+        addFilterRow();
+    });
+    
+    // Clear filters: reset form and reload page without query parameters.
+    document.getElementById('clear-filters-button').addEventListener('click', function() {
+        document.getElementById('dynamic-filter-form').reset();
+        window.location.href = window.location.pathname;
+    });
+    
+    // On page load, rebuild dynamic filter rows from GET parameters.
+    $(document).ready(function() {
+        const params = new URLSearchParams(window.location.search);
+        for (const key of params.keys()) {
+            if (key.startsWith('field_')) {
+                const index = key.split('_')[1];
+                const fieldVal = params.get(key);
+                const valueVal = params.get('value_' + index);
+                addFilterRow(fieldVal, valueVal);
+            }
+        }
+    });
+</script>
+
+        <!-- Table of Projects -->
+        <div style="padding: 10px;">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th class="project-id">Project ID</th>
+                            <th class="project-name">Project Name</th>
+                            <th class="sponsor-name">Sponsor Name</th>
+                            <th class="questionnaires-column">Questionnaires</th> <th class="deliverables-column hidden">Deliverables</th>
+                            <th class="status-column hidden">Project Status</th>
+                            <th class="therapeutic-areas-column hidden">Therapeutic Areas</th>
+                            <th class="ingredient-categories-column hidden">Ingredient Categories</th>
+                            <th class="ingredients-column hidden">Ingredients</th>
+                            <th class="responsible-party-column hidden">Responsible Party</th>
+                            <th class="route-of-admin-column hidden">Route of Admin</th>
+                            <th class="demographics-column hidden">Demographics</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in projects %}
+                            <tr>
+                                <td class="project-id">{{ project.projectid }}</td>
+                                <td class="project-name">{{ project.projectname }}</td>
+                                <td class="sponsor-name">{{ project.sponsorname }}</td>
+                                <td class="questionnaires-column">
+                                     <select class="questionnaire-input select2-multiple-questionnaires" multiple="multiple" id="questionnaire-{{ project.projectid }}" data-projectid="{{ project.projectid }}">
+                                        {% for questionnaire in project.selected_questionnaires %}
+                                            <option value="{{ questionnaire }}" selected>{{ questionnaire }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td class="deliverables-column hidden">
+                                    <select class="form-control select2-multiple-deliverables" name="deliverable_ids[]" multiple="multiple" data-project-id="{{ project.projectid }}">
+                                        {% for keyword in deliverables_keywords %}
+                                            <option value="{{ keyword.keywordid }}"
+                                                    {% if keyword.keywordid in project.selected_deliverable_ids %} selected {% endif %}>
+                                                {{ keyword.keyword }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                 <td class="status-column hidden">
+                                     <select id="status-dropdown-{{ project.projectid }}" onchange="updateStatus('{{ project.projectid }}')">
+                                        {% for status in status_keywords %}
+                                            <option value="{{ status.keywordid }}"
+                                                {% if project.projectstatus_set.first %}
+                                                    {% if project.projectstatus_set.first.keywordid_id == status.keywordid %}selected{% endif %}
+                                                {% else %}
+                                                    {% if status.keyword|lower == "none" %}selected{% endif %}
+                                                {% endif %}>
+                                                {{ status.keyword }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                 </td>
+                                <td class="ingredients-column hidden">
+                                    <select class="ingredient-input select2-multiple-ingredients" multiple="multiple" id="ingredient-{{ project.projectid }}" data-projectid="{{ project.projectid }}">
+                                        {% for ingredient in project.selected_ingredient_values %}
+                                            <option value="{{ ingredient }}" selected>{{ ingredient }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td class="therapeutic-areas-column hidden">...</td>
+                                 <td class="ingredient-categories-column hidden">...</td>
+                                 <td class="responsible-party-column hidden">...</td>
+                                 <td class="route-of-admin-column hidden">...</td>
+                                 <td class="demographics-column hidden">...</td>
+        
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="pagination-container">
+            <div class="page-size-selector">
+                <label for="page-size-selector">Page Size:</label>
+                <select id="page-size-selector" class="form-control" onchange="updatePageSize()">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="all">All</option> <!-- Option to show all results -->
+                </select>
+            </div>
+        </div>
+        
+
+        <div class="pagination-container">
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    {% if projects.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if query_string %}&{{ query_string }}{% endif %}" aria-label="First">
+                                &laquo; First
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ projects.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Previous</a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <span class="page-link">Page {{ projects.number }} of {{ projects.paginator.num_pages }}</span>
+                    </li>
+                    {% if projects.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ projects.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ projects.paginator.num_pages }}{% if query_string %}&{{ query_string }}{% endif %}" aria-label="Last">
+                                Last &raquo;
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+<script>
+    function addKeyword(projectId, keywordId, keywordType) {
+        $.ajax({
+            type: 'POST',
+            url: '{% url "add-keyword" %}',
+            data: {
+                'project_id': projectId,
+                'keyword_id': keywordId,
+                'keyword_type': keywordType,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.status === "success") {
+                    const listId = keywordType + '-' + projectId;
+                    $('#' + listId).append(
+                        '<li>' + response.keyword + 
+                        ' <button onclick="deleteKeyword(\'' + projectId + '\', \'' + keywordId + '\', \'' + keywordType + '\')">Remove</button></li>'
+                    );
+                } else {
+                    alert(response.message || "Error adding keyword.");
+                }
+            },
+            error: function() {
+                alert("Error communicating with server. Please try again later.");
+            }
+        });
+    }
+
+    function deleteKeyword(projectId, keywordId, keywordType) {
+        $.ajax({
+            type: 'POST',
+            url: '{% url "delete-keyword" %}',
+            data: {
+                'project_id': projectId,
+                'keyword_id': keywordId,
+                'keyword_type': keywordType,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.status === "success") {
+                    const listId = keywordType + '-' + projectId;
+                    $('#' + listId + ' li').filter(function() {
+                        return $(this).text().trim().startsWith(response.keyword);
+                    }).remove();
+                } else {
+                    alert(response.message || "Error deleting keyword.");
+                }
+            },
+            error: function() {
+                alert("Error communicating with server. Please try again later.");
+            }
+        });
+    }
+</script>
+<script>
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+
+    function updateStatus(projectId) {
+        const dropdown = document.getElementById(`status-dropdown-${projectId}`);
+        const keywordId = dropdown.value;
+
+        fetch(`/update-project-status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                keyword_id: keywordId
+            })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            console.log("Status updated successfully:", data);
+        })
+        .catch(error => {
+            console.error("Error updating status:", error);
+        });
+    }
+
+    function updateDeliverables(project_id) {
+    const selectedDeliverables = $(`#deliverables-${project_id}`).val();
+    $.ajax({
+        type: "POST",
+        url: window.location.origin + "{% url 'update-deliverables' %}",
+        data: {
+            project_id: project_id,
+            deliverable_ids: selectedDeliverables,
+            csrfmiddlewaretoken: getCookie('csrftoken')
+        },
+        success: function(response) {
+            console.log('Deliverables updated successfully');
+            // Option 2a: Show a toast notification indicating success.
+            // Option 2b: Optionally, trigger an AJAX call to re-fetch this project's data
+            // and update the row in the DOM.
+            // For example, if your response contained the new list:
+            if(response.new_deliverable_ids){
+                // Update the DOM (this assumes your select's options match your keywords).
+                $(`#deliverables-${project_id}`).val(response.new_deliverable_ids).trigger('change');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error updating deliverables:', error);
+        }
+    });
+}
+
+
+
+
+    function updateTherapeuticAreas(project_id) {
+        const selectedTherapeuticAreas = $(`#therapeutic-areas-${project_id}`).val(); // Get selected values
+        $.ajax({
+            type: "POST",
+            url: "/update-therapeutic-areas/",
+            data: {
+                project_id: project_id,
+                therapeutic_area_ids: selectedTherapeuticAreas,
+                csrfmiddlewaretoken: getCookie('csrftoken') // Ensure CSRF token is included
+            },
+            success: function(response) {
+                console.log('Therapeutic areas updated successfully');
+            },
+            error: function(xhr, status, error) {
+                console.error('Error updating therapeutic areas:', error);
+            }
+        });
+    }
+
+    // --- Initialize Select2 for NEW Questionnaires field ---
+    $('.questionnaire-input').select2({
+                tags: true, // Allow free text entry
+                tokenSeparators: [','], // Optional: allow comma separation for new tags
+                placeholder: 'Enter questionnaires',
+                allowClear: false, // Or true if you want a clear button
+                width: '100%',
+                ajax: {
+                    url: '{% url "search-questionnaires" %}', // Point to the new URL
+                    dataType: 'json',
+                    delay: 250, // Wait 250ms after typing before searching
+                    data: function (params) {
+                        return {
+                            term: params.term, // search term
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, params) {
+                        // Process the results from the AJAX request
+                        return {
+                            results: data.results
+                            // Add pagination if needed: pagination: { more: (params.page * 10) < data.total_count }
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 1 // Optional: trigger search after 1 character
+            });
+
+            // --- AJAX call to update Questionnaires on change ---
+            $('.questionnaire-input').on('change', function() {
+                var projectId = $(this).data('projectid');
+                var selectedQuestionnaires = $(this).val(); // Get the array of selected/entered text values
+
+                $.ajax({
+                    url: '{% url "update-questionnaires" %}', // Point to the new update URL
+                    type: 'POST',
+                    data: {
+                        'project_id': projectId,
+                        'questionnaires[]': selectedQuestionnaires, // Send as an array
+                        'csrfmiddlewaretoken': getCookie('csrftoken') // Get CSRF token
+                    },
+                    success: function(response) {
+                        if(response.status === 'success') {
+                            console.log("Questionnaires updated successfully for project " + projectId);
+                            // Optionally add a visual confirmation (e.g., a temporary highlight)
+                        } else {
+                            console.error("Error updating questionnaires:", response.message);
+                            alert("Error: " + response.message); // Show error to user
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("AJAX error updating questionnaires:", error);
+                        alert("A server error occurred. Please try again.");
+                    }
+                });
+            });
+
+
+
+
+</script>
+
+<script>
+    // Initialize Select2 on the therapeutic areas dropdown
+    $(document).ready(function() {
+        $('.therapeutic-areas-dropdown').select2({
+            placeholder: 'Select therapeutic areas',
+            allowClear: false
+        });
+    });
+
+    $(document).ready(function() {
+    $('.deliverables-dropdown').select2({
+        placeholder: 'Select deliverables',
+        allowClear: false
+    });
+});
+
+</script>
+
+
+
+<script>
+
+
+    $(document).ready(function() {
+        // Apply select2 to all multiple therapeutic areas dropdowns
+        $('.select2-multiple-therapeutic-areas').select2({
+            placeholder: "Select Therapeutic Areas",
+            allowClear: false,
+            width: '100%'  // Force 100% width
+        });
+
+        // AJAX call to update therapeutic areas
+        $('.select2-multiple-therapeutic-areas').change(function() {
+            var projectId = $(this).data('project-id');
+            var therapeuticAreaIds = $(this).val();
+            $.ajax({
+                type: 'POST',
+                url: '{% url "update-therapeutic-areas" %}',
+                data: {
+                    'project_id': projectId,
+                    'therapeutic_area_ids[]': therapeuticAreaIds,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                },
+                success: function(response) {
+                    console.log(response.status);
+                },
+                error: function(response) {
+                    console.log("Error:", response);
+                }
+            });
+        });
+    });
+
+    $(document).ready(function() {
+    // Initialize Select2 for deliverables
+    $('.select2-multiple-deliverables').select2({
+        placeholder: "Select Deliverables",
+        allowClear: false,
+        width: '100%'  // Force 100% width
+    });
+
+    // AJAX call to update deliverables
+    $('.select2-multiple-deliverables').change(function() {
+        var projectId = $(this).data('project-id');
+        var deliverableIds = $(this).val();  // Get selected values
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "update-deliverables" %}?',
+            data: {
+                'project_id': projectId,
+                'deliverable_ids[]': deliverableIds,
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+            },
+            success: function(response) {
+                console.log('Deliverables updated successfully');
+            },
+            error: function(response) {
+                console.log("Error updating deliverables:", response);
+            }
+        });
+    });
+});
+$(document).ready(function() {
+    // Initialize Select2 for ingredient categories
+    $('.select2-multiple-ingredients').select2({
+        placeholder: "Select Ingredient Categories",
+        allowClear: false,
+        width: '100%'  // Force 100% width
+    });
+
+    // AJAX call to update ingredient categories
+    $('.select2-multiple-ingredients').change(function() {
+        var projectId = $(this).data('project-id');
+        var ingredientCategoryIds = $(this).val();  // Get selected values
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "update-ingredient-categories" %}',
+            data: {
+                'project_id': projectId,
+                'ingredient_category_ids[]': ingredientCategoryIds,
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+            },
+            success: function(response) {
+                console.log('Ingredient Categories updated successfully');
+            },
+            error: function(response) {
+                console.log("Error updating ingredient categories:", response);
+            }
+        });
+    });
+});
+
+    $(document).ready(function() {
+        // Initialize Select2 for responsible parties
+        $('.select2-multiple-responsible-party').select2({
+            placeholder: "Select Responsible Parties",
+            allowClear: false,
+            width: '100%'  // Force 100% width
+        });
+
+        // AJAX call to update responsible parties
+        $('.select2-multiple-responsible-party').change(function() {
+            var projectId = $(this).data('project-id');
+            var responsiblePartyIds = $(this).val();  // Get selected values
+
+            $.ajax({
+                type: 'POST',
+                url: '{% url "update-responsible-parties" %}',
+                data: {
+                    'project_id': projectId,
+                    'responsible_party_ids[]': responsiblePartyIds,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                },
+                success: function(response) {
+                    console.log('Responsible Parties updated successfully');
+                },
+                error: function(response) {
+                    console.log("Error updating responsible parties:", response);
+                }
+            });
+        });
+    });
+
+    $(document).ready(function() {
+        // Initialize Select2 for route of admin
+        $('.select2-multiple-route-admin').select2({
+            placeholder: "Select Route of Admin",
+            allowClear: false,
+            width: '100%'  // Force 100% width
+        });
+
+        // AJAX call to update route of admin
+        $('.select2-multiple-route-admin').change(function() {
+            var projectId = $(this).data('project-id');
+            var routeOfAdminIds = $(this).val();  // Get selected values
+
+            $.ajax({
+                type: 'POST',
+                url: '{% url "update-route-of-admin" %}',
+                data: {
+                    'project_id': projectId,
+                    'route_of_admin_ids[]': routeOfAdminIds,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                },
+                success: function(response) {
+                    console.log('Route of Admin updated successfully');
+                },
+                error: function(response) {
+                    console.log("Error updating route of admin:", response);
+                }
+            });
+        });
+    });
+
+    $(document).ready(function() {
+        // Initialize Select2 with tagging (free text)
+        $('.ingredients-select').select2({
+            tags: true,
+            tokenSeparators: [','],  // Allows comma or space-separated tags
+            placeholder: 'Enter ingredients',
+            allowClear: false
+        });
+    });
+
+    function updateIngredients(project_id) {
+        const ingredients = $(`#ingredients-${project_id}`).val(); // Get the selected values
+
+        $.ajax({
+            type: "POST",
+            url: "/update-ingredients/",
+            data: {
+                project_id: project_id,
+                ingredients: ingredients,
+                csrfmiddlewaretoken: getCookie('csrftoken')  // CSRF token
+            },
+            success: function(response) {
+                // You can replace the alert with another action like refreshing part of the page or logging success
+                console.log("Ingredients updated successfully");  // Optional: log success instead
+            },
+            error: function(error) {
+                console.error("Error updating ingredients:", error);
+            }
+        });
+    }
+
+    $(document).ready(function() {
+    $('.ingredient-input').select2({
+        tags: true,
+        tokenSeparators: [','],
+        placeholder: 'Enter ingredients',
+        allowClear: false,
+        ajax: {
+            url: '{% url "search-ingredients" %}',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    term: params.term  // search term
+                };
+            },
+            processResults: function(data) {
+                return data;
+            },
+            cache: true
+        }
+    });
+
+    $('.ingredient-input').on('change', function() {
+        var projectId = $(this).data('projectid');
+        var selectedIngredients = $(this).val();
+        $.ajax({
+            url: '/update-ingredients/',
+            type: 'POST',
+            data: {
+                'project_id': projectId,
+                'ingredients': selectedIngredients,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                console.log("Ingredients updated successfully");
+            },
+            error: function(error) {
+                console.error("Error updating ingredients:", error);
+            }
+        });
+    });
+});
+
+    $(document).ready(function() {
+        $('.select2-multiple-demographics').select2({
+            placeholder: "Select Demographics",
+            allowClear: false,
+            width: '100%'
+        });
+
+        $('.select2-multiple-demographics').on('change', function() {
+            var projectId = $(this).data('project-id');
+            var demographicsIds = $(this).val();  // Array of selected keyword IDs
+            
+            $.ajax({
+                type: 'POST',
+                url: '{% url "update-demographics" %}',
+                data: {
+                    'project_id': projectId,
+                    'demographics_ids[]': demographicsIds,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    console.log('Demographics updated successfully:', response);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error updating demographics:', error);
+                }
+            });
+        });
+    });
+
+
+
+</script>
+</body>
+</html>
+

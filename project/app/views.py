@@ -4,7 +4,7 @@ from django.views import View
 from django.db.models import Prefetch
 from django.http import JsonResponse
 from django.db import transaction
-from django.db.models import Q  # Add at the top of your file if not already imported
+from django.db.models import Q
 from .models import (
     DeltekProjectID,
     ProjectDeliverables,
@@ -20,11 +20,14 @@ from .models import (
     IngredientCategoryKeyword,
     ResponsiblePartyKeyword,
     RouteofAdminKeyword,
-    ProjectDemographics, 
-    DemographicsKeyword
+    ProjectDemographics,
+    DemographicsKeyword,
+    QuestionnairesKeyword,
+    ProjectQuestionnaires
 )
 from django.views.decorators.csrf import csrf_exempt
 import json
+
 
 class ProjectListView(View):
     def get(self, request):
@@ -49,36 +52,64 @@ class ProjectListView(View):
 
         # Apply filters
         if filters["ProjectID"]:
-            projects = projects.filter(projectid__icontains=filters["ProjectID"])
+            projects = projects.filter(
+                projectid__icontains=filters["ProjectID"])
         if filters["ProjectName"]:
-            projects = projects.filter(projectname__icontains=filters["ProjectName"])
+            projects = projects.filter(
+                projectname__icontains=filters["ProjectName"])
         if filters["SponsorName"]:
-            projects = projects.filter(sponsorserial__sponsorname__icontains=filters["SponsorName"])
+            projects = projects.filter(
+                sponsorserial__sponsorname__icontains=filters["SponsorName"])
         if filters["Deliverables"]:
-            projects = projects.filter(projectdeliverables__keywordid__keyword__icontains=filters["Deliverables"]).distinct()
+            projects = projects.filter(
+                projectdeliverables__keywordid__keyword__icontains=filters[
+                    "Deliverables"]).distinct()
         if filters["Status"]:
-            projects = projects.filter(projectstatus__keywordid__keyword__icontains=filters["Status"])
+            projects = projects.filter(
+                projectstatus__keywordid__keyword__icontains=filters["Status"])
         if filters["TherapeuticAreas"]:
-            projects = projects.filter(projecttherapeuticarea__keywordid__keyword__icontains=filters["TherapeuticAreas"])
+            projects = projects.filter(
+                projecttherapeuticarea__keywordid__keyword__icontains=filters[
+                    "TherapeuticAreas"])
         if filters["IngredientCategories"]:
-            projects = projects.filter(projectingredientcategory__keywordid__keyword__icontains=filters["IngredientCategories"])
+            projects = projects.filter(
+                projectingredientcategory__keywordid__keyword__icontains=filters["IngredientCategories"])
         if filters["Ingredients"]:
-            projects = projects.filter(projectingredients__keywordid__icontains=filters["Ingredients"])  # Adjusted for free text
+            projects = projects.filter(
+                projectingredients__keywordid__icontains=filters["Ingredients"])  # Adjusted for free text
         if filters["ResponsibleParty"]:
-            projects = projects.filter(projectresponsibleparty__keywordid__keyword__icontains=filters["ResponsibleParty"])
+            projects = projects.filter(
+                projectresponsibleparty__keywordid__keyword__icontains=filters["ResponsibleParty"])
         if filters["RouteOfAdmin"]:
-            projects = projects.filter(projectrouteofadmin__keywordid__keyword__icontains=filters["RouteOfAdmin"])
+            projects = projects.filter(
+                projectrouteofadmin__keywordid__keyword__icontains=filters[
+                    "RouteOfAdmin"])
 
         # Query projects with prefetching for related fields (including filters)
         projects = projects.prefetch_related(
-            Prefetch("projectdeliverables_set", queryset=ProjectDeliverables.objects.select_related("keywordid")),
-            Prefetch("projectstatus_set", queryset=ProjectStatus.objects.select_related("keywordid")),
-            Prefetch("projecttherapeuticarea_set", queryset=ProjectTherapeuticArea.objects.select_related("keywordid")),
-            Prefetch("projectingredientcategory_set", queryset=ProjectIngredientCategory.objects.select_related("keywordid")),
-            Prefetch("projectingredients_set", queryset=ProjectIngredients.objects.all()),  # This line is important
-            Prefetch("projectresponsibleparty_set", queryset=ProjectResponsibleParty.objects.select_related("keywordid")),
-            Prefetch("projectrouteofadmin_set", queryset=ProjectRouteofAdmin.objects.select_related("keywordid")),
-            Prefetch("projectdemographics_set", queryset=ProjectDemographics.objects.select_related("keywordid")),
+            Prefetch("projectdeliverables_set",
+                     queryset=ProjectDeliverables.objects.select_related(
+                        "keywordid")),
+            Prefetch("projectstatus_set",
+                     queryset=ProjectStatus.objects.select_related(
+                        "keywordid")),
+            Prefetch("projecttherapeuticarea_set",
+                     queryset=ProjectTherapeuticArea.objects.select_related(
+                        "keywordid")),
+            Prefetch("projectingredientcategory_set",
+                     queryset=ProjectIngredientCategory.objects.select_related(
+                        "keywordid")),
+            Prefetch("projectingredients_set",
+                     queryset=ProjectIngredients.objects.all()),
+            Prefetch("projectresponsibleparty_set",
+                     queryset=ProjectResponsibleParty.objects.select_related(
+                        "keywordid")),
+            Prefetch("projectrouteofadmin_set",
+                     queryset=ProjectRouteofAdmin.objects.select_related(
+                        "keywordid")),
+            Prefetch("projectdemographics_set",
+                     queryset=ProjectDemographics.objects.select_related(
+                        "keywordid")),
 
         )
 
@@ -91,7 +122,8 @@ class ProjectListView(View):
                 value_key = f'value_{index}'
                 filter_value = request.GET.get(value_key, None)
                 if filter_value:
-                    filter_groups.setdefault(field_name, []).append(filter_value)
+                    filter_groups.setdefault(field_name, []).append(
+                        filter_value)
 
         # Apply each group of filters with OR logic for the same field.
         for field_name, values in filter_groups.items():
@@ -457,3 +489,159 @@ def search_ingredients(request):
         'results': [{'id': suggestion, 'text': suggestion} for suggestion in suggestions]
     }
     return JsonResponse(data)
+
+
+# --- Keep imports and other views/functions ---
+class FilteredProjectListView(View):
+    def get(self, request):
+        # Start with the base queryset including T/C filter
+        projects_query = DeltekProjectID.objects.filter(
+            projectid__startswith='T',
+            projectid__endswith='C'
+        ).select_related('sponsorserial').order_by('projectid')
+
+        # Get filter values from request (Corrected typo)
+        filters = {
+            "ProjectID": request.GET.get("ProjectID"),
+            "ProjectName": request.GET.get("ProjectName"),
+            "SponsorName": request.GET.get("SponsorName"),
+            "Questionnaires": request.GET.get("Questionnaires"), # Corrected key and assumed parameter name
+        }
+
+        # Apply filters sequentially to the *same* queryset
+        if filters["ProjectID"]:
+            projects_query = projects_query.filter(
+                projectid__icontains=filters["ProjectID"])
+        if filters["ProjectName"]:
+            projects_query = projects_query.filter(
+                projectname__icontains=filters["ProjectName"])
+        if filters["SponsorName"]:
+            projects_query = projects_query.filter(
+                sponsorserial__sponsorname__icontains=filters["SponsorName"])
+        if filters["Questionnaires"]:
+            # Corrected field name and added distinct()
+            projects_query = projects_query.filter(
+                projectquestionnaires__questionnaire_text__icontains=filters["Questionnaires"]
+            ).distinct()
+
+        # --- Now projects_query contains ALL applied filters ---
+
+        # --- Manual Prefetching/Data Assignment ---
+        # Get IDs from the *final* filtered queryset
+        final_project_ids = list(projects_query.values_list('projectid', flat=True))
+
+        # Fetch questionnaires for these specific projects
+        questionnaires_map = {}
+        for pq in ProjectQuestionnaires.objects.filter(projectid__in=final_project_ids).values('projectid', 'questionnaire_text'):
+            questionnaires_map.setdefault(pq['projectid'], []).append(pq['questionnaire_text'])
+
+        # Execute the final query to get project objects
+        projects_list = list(projects_query)
+
+        # Assign the fetched data to each project object in the final list
+        for project in projects_list:
+            project.selected_questionnaires = questionnaires_map.get(project.projectid, [])
+            # Assign other data similarly if you add more prefetching later
+
+        # --- Pagination ---
+        page_size = request.GET.get("page_size", 10)
+        if page_size == 'all':
+            # Paginate based on the final filtered list length
+            page_size = len(projects_list) if projects_list else 1 # Avoid Paginator error with 0
+        else:
+            try:
+                page_size = int(page_size)
+                if page_size <= 0: page_size = 10 # Ensure positive page size
+            except ValueError:
+                page_size = 10
+
+        # Paginate the *final* list
+        paginator = Paginator(projects_list, page_size)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        # --- Context ---
+        context = {
+            "projects": page_obj, # Use the paginated object from the final list
+            "page_size": page_size,
+            "filters": filters, # Pass applied filters back to template if needed
+            "questionnaires_keywords": QuestionnairesKeyword.objects.all(),
+            "deliverables_keywords": DeliverablesKeyword.objects.all(),
+            "status_keywords": ProjectStatusKeyword.objects.all(),
+            "therapeutic_area_keywords": TherapeuticAreaKeyword.objects.all(),
+            "ingredient_category_keywords": IngredientCategoryKeyword.objects.all(),
+            "responsible_party_keywords": ResponsiblePartyKeyword.objects.all(),
+            "route_of_admin_keywords": RouteofAdminKeyword.objects.all(),
+            "demographics_keywords": DemographicsKeyword.objects.all(),
+        }
+
+        # Persist query parameters for pagination
+        query_params = request.GET.copy()
+        if 'page' in query_params:
+            query_params.pop('page')
+        context['query_string'] = query_params.urlencode()
+
+        return render(request, "filtered_project_list_tc.html", context)
+
+# --- Keep the search_questionnaires and update_questionnaires AJAX views as they were ---
+# They seemed correct in your provided code.
+
+
+# --- New AJAX view for Questionnaire Search (similar to ingredients) ---
+
+
+@csrf_exempt # Use csrf_exempt carefully or implement proper CSRF handling
+def search_questionnaires(request):
+    """
+    Returns JSON results for Select2 AJAX search for Questionnaires.
+    Searches distinct values in the ProjectQuestionnaires table.
+    """
+    term = request.GET.get('term', '')
+    if not term:
+        return JsonResponse({'results': []})
+
+    suggestions = list(
+        ProjectQuestionnaires.objects.filter(questionnaire_text__icontains=term)
+        .values_list('questionnaire_text', flat=True)
+        .distinct()[:10] # Limit suggestions
+    )
+    data = {
+        'results': [{'id': suggestion, 'text': suggestion} for suggestion in suggestions]
+    }
+    return JsonResponse(data)
+
+
+# --- New AJAX view for Updating Questionnaires ---
+@csrf_exempt # Use csrf_exempt carefully or implement proper CSRF handling
+def update_questionnaires(request):
+    if request.method == "POST":
+        try:
+            project_id = request.POST.get("project_id")
+            questionnaires_texts = request.POST.getlist("questionnaires[]") # List of free-text questionnaires
+
+            if not project_id:
+                return JsonResponse({"status": "error", "message": "Project ID missing"}, status=400)
+
+            project = DeltekProjectID.objects.get(pk=project_id)
+
+            with transaction.atomic():
+                # Clear existing questionnaires for the project
+                ProjectQuestionnaires.objects.filter(projectid=project).delete()
+
+                # Add new questionnaires
+                questionnaires_to_create = []
+                for text in questionnaires_texts:
+                    if text: # Avoid saving empty strings
+                        questionnaires_to_create.append(
+                            ProjectQuestionnaires(projectid=project, questionnaire_text=text)
+                        )
+                ProjectQuestionnaires.objects.bulk_create(questionnaires_to_create)
+
+            return JsonResponse({"status": "success", "message": "Questionnaires updated."})
+        except DeltekProjectID.DoesNotExist:
+             return JsonResponse({"status": "error", "message": "Project not found."}, status=404)
+        except Exception as e:
+            # Log the error e
+            return JsonResponse({"status": "error", "message": f"An error occurred: {str(e)}"}, status=500)
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)

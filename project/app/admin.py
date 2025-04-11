@@ -8,6 +8,8 @@ from .models import (
     ProjectIngredients,        # Ensure this matches exactly
     ProjectResponsibleParty,
     ProjectRouteofAdmin,        # Correctly spelled as ProjectRouteofAdmin
+    QuestionnairesKeyword,
+    ProjectQuestionnaires,
 )
 
 
@@ -19,3 +21,5 @@ admin.site.register(ProjectTherapeuticArea)
 admin.site.register(ProjectIngredientCategory)
 admin.site.register(ProjectResponsibleParty)
 admin.site.register(ProjectRouteofAdmin)
+admin.site.register(QuestionnairesKeyword)
+admin.site.register(ProjectQuestionnaires)

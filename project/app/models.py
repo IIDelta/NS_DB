@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # Primary model for projects
 class DeltekProjectID(models.Model):
     projectid = models.CharField(
@@ -16,7 +17,8 @@ class DeltekProjectID(models.Model):
         null=True,
     )
     sponsorserial = models.ForeignKey(
-        "Client", models.DO_NOTHING, db_column="SponsorSerial", blank=True, null=True
+        "Client", models.DO_NOTHING,
+        db_column="SponsorSerial", blank=True, null=True
     )
 
     @property
@@ -52,7 +54,8 @@ class Client(models.Model):
 class DeliverablesKeyword(models.Model):
     keywordid = models.AutoField(db_column="KeywordID", primary_key=True)
     keyword = models.CharField(
-        db_column="Keyword", max_length=255, db_collation="SQL_Latin1_General_CP1_CI_AS"
+        db_column="Keyword", max_length=255,
+        db_collation="SQL_Latin1_General_CP1_CI_AS"
     )
 
     class Meta:
@@ -63,7 +66,8 @@ class DeliverablesKeyword(models.Model):
 class TherapeuticAreaKeyword(models.Model):
     keywordid = models.AutoField(db_column="KeywordID", primary_key=True)
     keyword = models.CharField(
-        db_column="Keyword", max_length=255, db_collation="SQL_Latin1_General_CP1_CI_AS"
+        db_column="Keyword", max_length=255,
+        db_collation="SQL_Latin1_General_CP1_CI_AS"
     )
 
     class Meta:
@@ -74,7 +78,8 @@ class TherapeuticAreaKeyword(models.Model):
 class IngredientCategoryKeyword(models.Model):
     keywordid = models.AutoField(db_column="KeywordID", primary_key=True)
     keyword = models.CharField(
-        db_column="Keyword", max_length=255, db_collation="SQL_Latin1_General_CP1_CI_AS"
+        db_column="Keyword", max_length=255,
+        db_collation="SQL_Latin1_General_CP1_CI_AS"
     )
 
     class Meta:
@@ -85,7 +90,8 @@ class IngredientCategoryKeyword(models.Model):
 class ProjectStatusKeyword(models.Model):
     keywordid = models.AutoField(db_column="KeywordID", primary_key=True)
     keyword = models.CharField(
-        db_column="Keyword", max_length=255, db_collation="SQL_Latin1_General_CP1_CI_AS"
+        db_column="Keyword", max_length=255,
+        db_collation="SQL_Latin1_General_CP1_CI_AS"
     )
 
     class Meta:
@@ -96,7 +102,8 @@ class ProjectStatusKeyword(models.Model):
 class ResponsiblePartyKeyword(models.Model):
     keywordid = models.AutoField(db_column="KeywordID", primary_key=True)
     keyword = models.CharField(
-        db_column="Keyword", max_length=255, db_collation="SQL_Latin1_General_CP1_CI_AS"
+        db_column="Keyword", max_length=255,
+        db_collation="SQL_Latin1_General_CP1_CI_AS"
     )
 
     class Meta:
@@ -107,7 +114,8 @@ class ResponsiblePartyKeyword(models.Model):
 class RouteofAdminKeyword(models.Model):
     keywordid = models.AutoField(db_column="KeywordID", primary_key=True)
     keyword = models.CharField(
-        db_column="Keyword", max_length=255, db_collation="SQL_Latin1_General_CP1_CI_AS"
+        db_column="Keyword", max_length=255,
+        db_collation="SQL_Latin1_General_CP1_CI_AS"
     )
 
     class Meta:
@@ -129,6 +137,7 @@ class ProjectDeliverables(models.Model):
         managed = False
         db_table = "ProjectDeliverables"
         unique_together = (("projectid", "keywordid"),)
+
 
 class ProjectIngredients(models.Model):
     entry_id = models.AutoField(primary_key=True)  # Explicit primary key field
@@ -177,7 +186,6 @@ class ProjectIngredientCategory(models.Model):
         unique_together = (("projectid", "keywordid"),)
 
 
-
 class ProjectStatus(models.Model):
     entry_id = models.AutoField(primary_key=True)  # Explicit primary key field
     projectid = models.ForeignKey(
@@ -222,6 +230,7 @@ class ProjectRouteofAdmin(models.Model):
         db_table = "ProjectRouteofAdmin"
         unique_together = (("projectid", "keywordid"),)
 
+
 # New Keyword Model for Demographics
 class DemographicsKeyword(models.Model):
     keywordid = models.AutoField(db_column="KeywordID", primary_key=True)
@@ -232,7 +241,7 @@ class DemographicsKeyword(models.Model):
     )
 
     class Meta:
-        managed = True  # Django will manage this table
+        managed = False  # Django will manage this table
         db_table = "DemographicsKeyword"
 
 
@@ -249,6 +258,56 @@ class ProjectDemographics(models.Model):
     )
 
     class Meta:
-        managed = True
+        managed = False
         db_table = "ProjectDemographics"
         unique_together = (("projectid", "keywordid"),)
+
+
+# Questionnaire models
+class QuestionnairesKeyword(models.Model):
+    """Stores the distinct questionnaire values."""
+    keywordid = models.AutoField(db_column="KeywordID", primary_key=True)
+    keyword = models.CharField(
+        db_column="Keyword",
+        max_length=255,
+        # Adjust length as needed
+        db_collation="SQL_Latin1_General_CP1_CI_AS",
+        unique=True
+        # Ensure questionnaire text is unique if desired
+    )
+
+    class Meta:
+        managed = True
+        # Django will manage this table
+        db_table = "QuestionnairesKeyword"
+
+    def __str__(self):
+        return self.keyword
+
+
+class ProjectQuestionnaires(models.Model):
+    """Links Projects to Questionnaires."""
+    entry_id = models.AutoField(primary_key=True)
+    projectid = models.ForeignKey(
+        DeltekProjectID,
+        models.CASCADE,
+        # Or models.PROTECT, etc. depending on desired behavior
+        db_column="ProjectID",
+        to_field="projectid"
+    )
+    # Storing as free text similar to Ingredients
+    questionnaire_text = models.CharField(
+        db_column="QuestionnaireText",
+        max_length=500,
+        # Adjust max length as needed
+        db_collation="SQL_Latin1_General_CP1_CI_AS",
+    )
+
+    class Meta:
+        managed = True
+        db_table = "ProjectQuestionnaires"
+        unique_together = (("projectid", "questionnaire_text"),)
+        # Ensure a project doesn't have the same text twice
+
+    def __str__(self):
+        return f"{self.projectid.projectid} - {self.questionnaire_text}"
