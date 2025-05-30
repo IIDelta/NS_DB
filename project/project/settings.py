@@ -66,8 +66,6 @@ DATABASES = {
 }
 
 
-
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -89,7 +87,9 @@ USE_I18N = True
 USE_TZ = True
 STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'app/static'), # Tells Django to look in your app's static folder
+]
 
 # WINDOWS_AUTH = {
 #     "CALLBACK": lambda request,

@@ -1,0 +1,238 @@
+/* proposals/static/proposals/css/custom_styles.css */
+
+/* General Page Styles (Inspired by QWidget) */
+body {
+    background-color: #F5F5F5; /* Light gray background */
+    color: #333333; /* Dark gray text */
+    font-family: 'Segoe UI', Arial, sans-serif; /* Clean font */
+    font-size: 13px; /* Approx 10pt */
+    line-height: 1.6;
+}
+
+/* Main Content Container (Inspired by QMainWindow, QDialog & Bootstrap's .container) */
+.container {
+    background-color: #FFFFFF; /* White background for main content area */
+    padding: 25px;
+    border-radius: 8px; /* Slightly more rounded than QSS for a modern web feel */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Softer shadow */
+    margin-top: 2rem !important;
+    margin-bottom: 2rem;
+}
+
+/* Headings - Using the primary purple for accents */
+h1, h2, h3, h4, h5, h6 {
+    color: #5E2D91; /* Primary purple */
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.5rem; }
+
+/* Labels (Inspired by QLabel) */
+label {
+    background-color: transparent;
+    padding: 2px 0; /* Adjusted padding for web */
+    font-weight: bold; /* Common for web labels */
+    color: #444; /* Slightly darker for better contrast on white */
+}
+
+/* Buttons (Inspired by QPushButton) */
+.btn {
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px; /* Rounded corners */
+    font-weight: bold;
+    min-height: 36px; /* Adjusted for web, QSS was 32px */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.5; /* Ensure text fits well */
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+.btn-primary {
+    background-color: #5E2D91; /* Primary purple */
+    color: white;
+    border-color: #5E2D91; /* Ensure border matches for consistency */
+}
+.btn-primary:hover {
+    background-color: #3C1A56; /* Darker purple on hover */
+    border-color: #3C1A56;
+    color: white;
+}
+.btn-primary:active, .btn-primary:focus {
+    background-color: #2E1443 !important; /* Even darker on press/focus */
+    border-color: #2E1443 !important;
+    color: white !important;
+    box-shadow: 0 0 0 0.2rem rgba(94, 45, 145, 0.3); /* Focus glow */
+}
+
+/* Secondary/Info Button - Inspired by CheckUncheckButton's light purple theme */
+.btn-info, .btn-secondary { /* Grouping for similar styling, Bootstrap's .btn-info is often teal */
+    background-color: #E8E0F1; /* Light purple background */
+    color: #3C1A56; /* Dark purple text */
+    border: 1px solid #C0C0C0;
+}
+.btn-info:hover, .btn-secondary:hover {
+    background-color: #D6C4E9; /* Darker hover */
+    border-color: #5E2D91;
+    color: #3C1A56;
+}
+.btn-info:active, .btn-info:focus,
+.btn-secondary:active, .btn-secondary:focus {
+    background-color: #C5B0DE !important;
+    border-color: #5E2D91 !important;
+    color: #3C1A56 !important;
+    box-shadow: 0 0 0 0.2rem rgba(94, 45, 145, 0.2);
+}
+
+/* Round Add Button (Inspired by QPushButton#AddButton) */
+.btn-add {
+    background-color: #5E2D91;
+    color: white;
+    padding: 0; /* Adjust padding to center content */
+    border-radius: 50%; /* Makes it perfectly round */
+    width: 36px;  /* Adjusted for web */
+    height: 36px;
+    min-height: 36px;
+    font-weight: bold;
+    font-size: 1.5rem; /* Approx 16pt */
+    line-height: 1; /* Center the '+' sign */
+}
+.btn-add:hover {
+    background-color: #3C1A56;
+    color: white;
+}
+
+/* Text Inputs & TextAreas (Inspired by QLineEdit, QTextEdit) */
+.form-control, input[type="text"], input[type="email"], input[type="password"], input[type="search"], textarea {
+    background-color: #FFFFFF;
+    border: 1px solid #C0C0C0;
+    border-radius: 3px;
+    padding: 6px 10px; /* Adjusted padding */
+    font-size: 13px; /* Approx 10pt, QTextEdit was 9pt */
+}
+.form-control:focus, input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, input[type="search"]:focus, textarea:focus {
+    border-color: #5E2D91; /* Primary purple focus */
+    box-shadow: 0 0 0 0.2rem rgba(94, 45, 145, 0.25); /* Bootstrap-like focus glow */
+}
+
+/* If you want specific columns (other than comments and actions) to NOT wrap: */
+/* Add a class to their <td> in the HTML, e.g., <td class="no-wrap-cell">...</td> */
+/* Then add this CSS:
+.table td.no-wrap-cell {
+    white-space: nowrap;
+}
+*/
+
+/* Ensure headers also get appropriate nowrap or wrapping rules */
+.table thead th {
+    background-color: #E8E0F1;
+    color: #3C1A56;
+    font-weight: bold;
+    border-bottom-width: 2px;
+    border-color: #D6C4E9;
+    vertical-align: middle; /* Added for consistency */
+}
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #F8F4FC; /* Light purple stripes */
+}
+.table-hover tbody tr:hover {
+    background-color: #E8E0F1; /* Light purple hover - same as header */
+    color: #333333;
+}
+
+/* Checkboxes (Inspired by QCheckBox) - Basic Styling */
+/* Note: Fully custom checkboxes often require more complex CSS/JS or Bootstrap's custom forms. */
+.form-check-input {
+    border-color: #AAAAAA;
+}
+.form-check-input:checked {
+    background-color: #5E2D91; /* Primary purple */
+    border-color: #5E2D91;
+}
+.form-check-input:focus {
+    border-color: #5E2D91;
+    box-shadow: 0 0 0 0.2rem rgba(94, 45, 145, 0.25);
+}
+.form-check-label {
+    font-weight: normal; /* Override bold from general label if needed */
+}
+
+/* Tabs (Inspired by QTabWidget, QTabBar) - Styling for Bootstrap Navs */
+.nav-tabs {
+    border-bottom: 1px solid #C0C0C0; /* Match QTabWidget::pane border-top */
+}
+.nav-tabs .nav-link {
+    background: #E8E8E8; /* Slightly lighter gray tabs */
+    color: #555555;
+    border: 1px solid #C8C8C8;
+    border-bottom: 1px solid #C0C0C0; /* Match pane top border */
+    padding: 10px 20px; /* Adjusted from QSS 7px 18px */
+    margin-right: 2px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    font-size: 13px; /* Approx 10pt */
+}
+.nav-tabs .nav-link:hover {
+    background: #D5D5D5;
+    border-color: #C0C0C0 #C0C0C0 #C0C0C0;
+}
+.nav-tabs .nav-link.active {
+    background: #FFFFFF; /* Match pane background */
+    color: #5E2D91; /* Primary purple for active tab text */
+    border-color: #C0C0C0 #C0C0C0 #FFFFFF; /* Bottom border 'invisible' */
+    font-weight: bold; /* Make active tab text bold */
+    margin-bottom: -1px; /* Pull down to cover pane's top border */
+}
+.tab-content {
+    background-color: #FFFFFF;
+    padding: 1rem; /* Add padding to tab content area */
+    border: 1px solid #C0C0C0;
+    border-top: none; /* Border is handled by .nav-tabs and .nav-link.active */
+    border-radius: 0 0 4px 4px; /* Round bottom corners */
+}
+
+/* Alert styling (ensure consistency if Bootstrap defaults are overridden) */
+.alert {
+    border-radius: 4px;
+    padding: 1rem;
+}
+.alert-info { /* Example from your previous base.html context */
+    background-color: #cce5ff;
+    border-color: #b8daff;
+    color: #004085;
+}
+/* You can add specific styles for .alert-success, .alert-warning, .alert-danger using your theme's purple or complementary colors */
+
+/* Pagination - Align with button/accent colors */
+.pagination .page-item.active .page-link {
+    background-color: #5E2D91;
+    border-color: #5E2D91;
+    color: white;
+}
+.pagination .page-link {
+    color: #5E2D91;
+    padding: 0.5rem 0.75rem;
+}
+.pagination .page-link:hover {
+    background-color: #E8E0F1;
+    color: #3C1A56;
+    border-color: #D6C4E9;
+}
+.pagination .page-item.disabled .page-link {
+    color: #888;
+    background-color: #F5F5F5;
+    border-color: #E0E0E0;
+}
+
+
+/* Ensure table cells adapt or align well */
+.table td {
+    vertical-align: top; /* Often looks better when cell contents have varying heights */
+    padding-top: 12px;   /* Adjust padding for good spacing */
+    padding-bottom: 12px;
+}
+
