@@ -81,6 +81,17 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'my-unique-cache-name',  # Can be any unique string
+        # You can add 'TIMEOUT': 300, # Default timeout in seconds (5 minutes)
+        # 'OPTIONS': {
+        # 'MAX_ENTRIES': 1000 # Max number of entries before old ones are culled
+        # }
+    }
+}
+
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True

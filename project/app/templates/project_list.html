@@ -210,6 +210,28 @@
             min-width: 200px;
             max-width: 300px;
         }
+        .editable-cell .cell-text {
+            font-size: 0.95rem; /* Adjust this value as needed. e.g., 1em, 1.1em, 14px, 15px */
+            /* You can also adjust line-height if needed, or padding within the cell for alignment */
+            display: inline-block; /* Helps with consistent alignment if you add padding/margin */
+            padding: 2px 0; /* Example padding */
+        }
+
+        .editable-cell .cell-text .badge {
+            font-size: 0.9rem;  /* Make badges slightly smaller or same as cell-text, adjust as needed */
+            /* vertical-align: middle; */ /* May help with alignment of badges and text */
+        }
+
+        .editable-cell .cell-text .text-muted {
+            font-size: 0.9rem; /* Adjust if you want the "None" text to be a different size */
+            /* font-style: italic; */ /* Optional: to make "None" more distinct */
+        }
+
+        /* Ensure table cells still vertically align middle overall */
+        .table td.editable-cell {
+            vertical-align: middle;
+        }
+
     </style>
 {% endblock %}
 
@@ -287,91 +309,206 @@
                         <th class="demographics-column sticky">Demographics</th> {# Added Demographics column #}
                     </tr>
                 </thead>
-                <tbody>
-                    {% for project in projects %}
-                        <tr>
-                            <td>{{ project.projectid }}</td>
-                            <td>{{ project.projectname }}</td>
-                            <td>{{ project.sponsorname }}</td>
-                            <td class="deliverables-column">
-                                <select class="form-control select2-multiple-deliverables" name="deliverable_ids[]" multiple="multiple" data-project-id="{{ project.projectid }}">
-                                    {% for keyword in deliverables_keywords %}
-                                        <option value="{{ keyword.keywordid }}" {% if keyword.keywordid in project.selected_deliverable_ids %}selected{% endif %}>
-                                            {{ keyword.keyword }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </td>
-                            <td class="status-column">
-                                <select id="status-dropdown-{{ project.projectid }}" class="project-status-select" onchange="updateStatus('{{ project.projectid }}')"> {# Added project-status-select class #}
-                                    {# Logic for selecting status based on project or defaulting to "None" #}
-                                    {% for status_keyword_item in status_keywords %} {# Renamed to avoid conflict if 'status' is a context variable #}
-                                        <option value="{{ status_keyword_item.keywordid }}"
-                                            {% if project.projectstatus_set.first and project.projectstatus_set.first.keywordid_id == status_keyword_item.keywordid %}
-                                                selected
-                                            {% elif not project.projectstatus_set.first and status_keyword_item.keyword|lower == "none" %}
-                                                selected
-                                            {% endif %}>
-                                            {{ status_keyword_item.keyword }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </td>
-                            <td class="therapeutic-areas-column">
-                                <select id="therapeutic-areas-{{ project.projectid }}" class="form-control therapeutic-areas-dropdown" multiple="multiple" onchange="updateTherapeuticAreas('{{ project.projectid }}')">
-                                    {% for therapeutic_area in therapeutic_area_keywords %}
-                                        <option value="{{ therapeutic_area.keywordid }}" {% if therapeutic_area.keywordid in project.selected_therapeutic_areas %}selected{% endif %}>
-                                            {{ therapeutic_area.keyword }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </td>
-                            <td class="ingredient-categories-column">
-                                <select class="form-control select2-multiple-ingredients" name="ingredient_category_ids[]" multiple="multiple" data-project-id="{{ project.projectid }}">
-                                    {% for keyword in ingredient_category_keywords %}
-                                        <option value="{{ keyword.keywordid }}" {% if keyword.keywordid in project.selected_ingredient_category_ids %}selected{% endif %}>
-                                            {{ keyword.keyword }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </td>
-                            <td class="ingredients-column">
-                                <select class="form-control ingredient-input" multiple="multiple" id="ingredient-{{ project.projectid }}" data-projectid="{{ project.projectid }}">
-                                    {% for ingredient in project.selected_ingredient_values %}
-                                        <option value="{{ ingredient }}" selected>{{ ingredient }}</option>
-                                    {% endfor %}
-                                </select>
-                            </td>
-                            <td class="responsible-party-column">
-                                <select class="form-control select2-multiple-responsible-party" name="responsible_party_ids[]" multiple="multiple" data-project-id="{{ project.projectid }}">
-                                    {% for keyword in responsible_party_keywords %}
-                                        <option value="{{ keyword.keywordid }}" {% if keyword.keywordid in project.selected_responsible_party_ids %}selected{% endif %}>
-                                            {{ keyword.keyword }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </td>
-                            <td class="route-of-admin-column">
-                                <select class="form-control select2-multiple-route-admin" name="route_of_admin_ids[]" multiple="multiple" data-project-id="{{ project.projectid }}">
-                                    {% for keyword in route_of_admin_keywords %}
-                                        <option value="{{ keyword.keywordid }}" {% if keyword.keywordid in project.selected_route_of_admin_ids %}selected{% endif %}>
-                                            {{ keyword.keyword }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </td>
-                            <td class="demographics-column"> {# Added Demographics data cell #}
-                                <select class="form-control select2-multiple-demographics" name="demographics_ids[]" multiple="multiple" data-project-id="{{ project.projectid }}">
-                                    {% for keyword in demographics_keywords %} {# Assuming demographics_keywords is passed to context #}
-                                        <option value="{{ keyword.keywordid }}" {% if keyword.keywordid in project.selected_demographics_ids %}selected{% endif %}>
-                                            {{ keyword.keyword }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
+            <tbody>
+            {% for project in projects %}
+                <tr>
+                    <td>{{ project.projectid }}</td>
+                    <td>{{ project.projectname }}</td>
+                    <td>{{ project.sponsorname }}</td>
+
+                    {# Deliverables Column - Assuming you've already updated this as per prior examples #}
+                    <td class="deliverables-column editable-cell"
+                        data-project-id="{{ project.projectid }}"
+                        data-field-type="deliverables"
+                        data-update-url="{% url 'update-deliverables' %}"
+                        data-placeholder="Select Deliverables"
+                        data-current-value-ids="{% for id in project.selected_deliverable_ids %}{{ id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                        <span class="cell-text">
+                            {% for keyword in deliverables_keywords %}
+                                {% if keyword.keywordid in project.selected_deliverable_ids %}
+                                    <span class="badge badge-light mr-1">{{ keyword.keyword }}</span>
+                                {% endif %}
+                            {% endfor %}
+                            {% if not project.selected_deliverable_ids and deliverables_keywords|length > 0 %} {# Handle case where list is not empty but nothing selected #}
+                                <span class="text-muted">None</span>
+                            {% elif not project.selected_deliverable_ids and not deliverables_keywords %}  {# Handle case where list is empty and nothing selected #}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </span>
+                        <select class="form-control select-for-editing" multiple="multiple" style="display:none;">
+                            {% for keyword in deliverables_keywords %}
+                                <option value="{{ keyword.keywordid }}">{{ keyword.keyword }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+
+                    {# Status Column - Kept as standard select as it's efficient #}
+                    <td class="status-column">
+                        <select id="status-dropdown-{{ project.projectid }}" class="project-status-select" onchange="updateStatus('{{ project.projectid }}')">
+                            {% for status_keyword_item in status_keywords %}
+                                <option value="{{ status_keyword_item.keywordid }}"
+                                    {% comment %}
+                                        In your view, project.current_status_keywordid should be set.
+                                        Example:
+                                        status_entry = project_item._status_cache_list[0] if project_item._status_cache_list else None
+                                        project_item.current_status_keywordid = status_entry.keywordid_id if status_entry else None
+                                    {% endcomment %}
+                                    {% if project.current_status_keywordid == status_keyword_item.keywordid %}
+                                        selected
+                                    {% elif not project.current_status_keywordid and status_keyword_item.keyword|lower == "none" %}
+                                        selected
+                                    {% endif %}>
+                                    {{ status_keyword_item.keyword }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+
+                    {# Therapeutic Areas Column #}
+                    <td class="therapeutic-areas-column editable-cell"
+                        data-project-id="{{ project.projectid }}"
+                        data-field-type="therapeutic_areas"
+                        data-update-url="{% url 'update-therapeutic-areas' %}"
+                        data-placeholder="Select therapeutic areas"
+                        data-current-value-ids="{% for id in project.selected_therapeutic_areas %}{{ id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                        <span class="cell-text">
+                            {% for keyword in therapeutic_area_keywords %}
+                                {% if keyword.keywordid in project.selected_therapeutic_areas %}
+                                    <span class="badge badge-light mr-1">{{ keyword.keyword }}</span>
+                                {% endif %}
+                            {% endfor %}
+                            {% if not project.selected_therapeutic_areas %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </span>
+                        <select class="form-control select-for-editing" multiple="multiple" style="display:none;">
+                            {% for keyword in therapeutic_area_keywords %}
+                                <option value="{{ keyword.keywordid }}">{{ keyword.keyword }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+
+                    {# Ingredient Categories Column #}
+                    <td class="ingredient-categories-column editable-cell"
+                        data-project-id="{{ project.projectid }}"
+                        data-field-type="ingredient_categories"
+                        data-update-url="{% url 'update-ingredient-categories' %}"
+                        data-placeholder="Select Ingredient Categories"
+                        data-current-value-ids="{% for id in project.selected_ingredient_category_ids %}{{ id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                        <span class="cell-text">
+                            {% for keyword in ingredient_category_keywords %}
+                                {% if keyword.keywordid in project.selected_ingredient_category_ids %}
+                                    <span class="badge badge-light mr-1">{{ keyword.keyword }}</span>
+                                {% endif %}
+                            {% endfor %}
+                            {% if not project.selected_ingredient_category_ids %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </span>
+                        <select class="form-control select-for-editing" multiple="multiple" style="display:none;">
+                            {% for keyword in ingredient_category_keywords %}
+                                <option value="{{ keyword.keywordid }}">{{ keyword.keyword }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+
+                    {# Ingredients Column (Tags and AJAX search) #}
+                    <td class="ingredients-column editable-cell"
+                        data-project-id="{{ project.projectid }}"
+                        data-field-type="ingredients"
+                        data-update-url="{% url 'update_ingredients' %}"
+                        data-placeholder="Enter ingredients"
+                        data-current-value-ids="{% for val in project.selected_ingredient_values %}{{ val }}{% if not forloop.last %},{% endif %}{% endfor %}"
+                        data-ajax-search-url="{% url 'search-ingredients' %}"> {# Used by JS to configure Select2 AJAX #}
+                        <span class="cell-text">
+                            {% for ingredient_text in project.selected_ingredient_values %}
+                                <span class="badge badge-info mr-1">{{ ingredient_text }}</span>
+                            {% empty %}
+                                <span class="text-muted">None</span>
+                            {% endfor %}
+                        </span>
+                        <select class="form-control select-for-editing" multiple="multiple" style="display:none;">
+                            {# Options are pre-filled with current values for Select2 tags mode #}
+                            {% for ingredient_text in project.selected_ingredient_values %}
+                                <option value="{{ ingredient_text }}" selected>{{ ingredient_text }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+
+                    {# Responsible Party Column #}
+                    <td class="responsible-party-column editable-cell"
+                        data-project-id="{{ project.projectid }}"
+                        data-field-type="responsible_party"
+                        data-update-url="{% url 'update-responsible-parties' %}"
+                        data-placeholder="Select Responsible Parties"
+                        data-current-value-ids="{% for id in project.selected_responsible_party_ids %}{{ id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                        <span class="cell-text">
+                            {% for keyword in responsible_party_keywords %}
+                                {% if keyword.keywordid in project.selected_responsible_party_ids %}
+                                    <span class="badge badge-light mr-1">{{ keyword.keyword }}</span>
+                                {% endif %}
+                            {% endfor %}
+                            {% if not project.selected_responsible_party_ids %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </span>
+                        <select class="form-control select-for-editing" multiple="multiple" style="display:none;">
+                            {% for keyword in responsible_party_keywords %}
+                                <option value="{{ keyword.keywordid }}">{{ keyword.keyword }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+
+                    {# Route of Admin Column #}
+                    <td class="route-of-admin-column editable-cell"
+                        data-project-id="{{ project.projectid }}"
+                        data-field-type="route_of_admin"
+                        data-update-url="{% url 'update-route-of-admin' %}"
+                        data-placeholder="Select Route of Admin"
+                        data-current-value-ids="{% for id in project.selected_route_of_admin_ids %}{{ id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                        <span class="cell-text">
+                            {% for keyword in route_of_admin_keywords %}
+                                {% if keyword.keywordid in project.selected_route_of_admin_ids %}
+                                    <span class="badge badge-light mr-1">{{ keyword.keyword }}</span>
+                                {% endif %}
+                            {% endfor %}
+                            {% if not project.selected_route_of_admin_ids %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </span>
+                        <select class="form-control select-for-editing" multiple="multiple" style="display:none;">
+                            {% for keyword in route_of_admin_keywords %}
+                                <option value="{{ keyword.keywordid }}">{{ keyword.keyword }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+
+                    {# Demographics Column #}
+                    <td class="demographics-column editable-cell"
+                        data-project-id="{{ project.projectid }}"
+                        data-field-type="demographics"
+                        data-update-url="{% url 'update-demographics' %}"
+                        data-placeholder="Select Demographics"
+                        data-current-value-ids="{% for id in project.selected_demographics_ids %}{{ id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                        <span class="cell-text">
+                            {% for keyword in demographics_keywords %}
+                                {% if keyword.keywordid in project.selected_demographics_ids %}
+                                    <span class="badge badge-light mr-1">{{ keyword.keyword }}</span>
+                                {% endif %}
+                            {% endfor %}
+                            {% if not project.selected_demographics_ids %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </span>
+                        <select class="form-control select-for-editing" multiple="multiple" style="display:none;">
+                            {% for keyword in demographics_keywords %}
+                                <option value="{{ keyword.keywordid }}">{{ keyword.keyword }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
             </table>
         </div>
     </div>
@@ -566,6 +703,8 @@
             window.location.href = window.location.pathname; // Reload to clear URL params
         });
         
+
+
         // The "Apply Filters" button is type="submit", so it will trigger the form's GET request.
         // If you wanted it to use applyDynamicFilters() instead, change its type to "button"
         // and add: document.getElementById('apply-filters-button').addEventListener('click', applyDynamicFilters);
@@ -595,104 +734,156 @@
         const pageSize = searchParamsForPageSize.get('page_size') || '{{ page_size|default:"10" }}';
         $('#page-size-selector').val(pageSize);
 
-        // Select2 Initializations and AJAX .change handlers
-        $('.select2-multiple-deliverables').select2({
-            placeholder: "Select Deliverables", allowClear: false, width: '100%'
-        }).on('change', function() {
-            var projectId = $(this).data('project-id');
-            var deliverableIds = $(this).val();
-            $.ajax({
-                type: 'POST', url: "{% url 'update-deliverables' %}",
-                data: { 'project_id': projectId, 'deliverable_ids[]': deliverableIds, 'csrfmiddlewaretoken': csrfToken },
-                success: function(response) { console.log('Deliverables updated:', response); },
-                error: function(response) { console.error("Error updating deliverables:", response); }
-            });
-        });
+        // === START: "INITIALIZE ON CLICK & DESTROY" LOGIC ===
+        let activeSelect2Cell = null; // To keep track of the currently editing cell
 
-        // Therapeutic Areas: onchange is in HTML, Select2 init is for styling.
-        $('.therapeutic-areas-dropdown').select2({
-            placeholder: 'Select therapeutic areas', allowClear: false, width: '100%'
-        });
+        // Use event delegation on a stable parent, like the table body or .table-responsive
+        $('.table-responsive').on('click', '.editable-cell', function(e) {
+            const $cell = $(this);
 
-        $('.select2-multiple-ingredients').select2({ // This was for ingredient categories in your latest HTML structure.
-            placeholder: "Select Ingredient Categories", allowClear: false, width: '100%'
-        }).on('change', function() {
-            var projectId = $(this).data('project-id');
-            var ingredientCategoryIds = $(this).val();
-            $.ajax({
-                type: 'POST', url: "{% url 'update-ingredient-categories' %}",
-                data: { 'project_id': projectId, 'ingredient_category_ids[]': ingredientCategoryIds, 'csrfmiddlewaretoken': csrfToken },
-                success: function(response) { console.log('Ingredient Categories updated:', response); },
-                error: function(response) { console.error("Error updating ingredient categories:", response); }
-            });
-        });
-
-        $('.select2-multiple-responsible-party').select2({
-            placeholder: "Select Responsible Parties", allowClear: false, width: '100%'
-        }).on('change', function() {
-            var projectId = $(this).data('project-id');
-            var responsiblePartyIds = $(this).val();
-            $.ajax({
-                type: 'POST', url: "{% url 'update-responsible-parties' %}",
-                data: { 'project_id': projectId, 'responsible_party_ids[]': responsiblePartyIds, 'csrfmiddlewaretoken': csrfToken },
-                success: function(response) { console.log('Responsible Parties updated:', response); },
-                error: function(response) { console.error("Error updating responsible parties:", response); }
-            });
-        });
-
-        $('.select2-multiple-route-admin').select2({
-            placeholder: "Select Route of Admin", allowClear: false, width: '100%'
-        }).on('change', function() {
-            var projectId = $(this).data('project-id');
-            var routeOfAdminIds = $(this).val();
-            $.ajax({
-                type: 'POST', url: "{% url 'update-route-of-admin' %}",
-                data: { 'project_id': projectId, 'route_of_admin_ids[]': routeOfAdminIds, 'csrfmiddlewaretoken': csrfToken },
-                success: function(response) { console.log('Route of Admin updated:', response); },
-                error: function(response) { console.error("Error updating route of admin:", response); }
-            });
-        });
-
-        // Ingredients (free text with tags) - from your new HTML
-        $('.ingredient-input').select2({
-            tags: true,
-            tokenSeparators: [','],
-            placeholder: 'Enter ingredients',
-            allowClear: false, // Maintained from original Select2 in new HTML
-            width: '100%', // Ensured width
-            // AJAX for suggestions was in your new HTML, ensure 'search-ingredients' URL is defined
-            ajax: { 
-                url: '{% url "search-ingredients" %}', // MAKE SURE THIS URL NAME IS CORRECT IN YOUR URLS.PY
-                dataType: 'json',
-                delay: 250,
-                data: function(params) { return { term: params.term }; },
-                processResults: function(data) { return data; },
-                cache: true
+            // If already editing this cell, or if the click is on an active Select2, do nothing
+            if ($cell.hasClass('editing') || $(e.target).closest('.select2-container').length) {
+                return;
             }
-        }).on('change', function() {
-            var projectId = $(this).data('projectid');
-            var selectedIngredients = $(this).val();
-            $.ajax({
-                url: "{% url 'update_ingredients' %}", type: 'POST',
-                data: { 'project_id': projectId, 'ingredients': selectedIngredients, 'csrfmiddlewaretoken': csrfToken },
-                success: function(response) { console.log("Ingredients updated:", response); },
-                error: function(error) { console.error("Error updating ingredients:", error); }
+
+            // If another cell is being edited, try to "commit" or "close" it first
+            if (activeSelect2Cell && activeSelect2Cell[0] !== $cell[0]) {
+                const $activeSelect = activeSelect2Cell.find('select.select-for-editing');
+                if ($activeSelect.data('select2')) {
+                    $activeSelect.trigger('select2:close'); // Attempt to close and trigger update/destroy
+                }
+            }
+            activeSelect2Cell = $cell; // Set current cell
+
+            $cell.addClass('editing');
+            const $textDisplay = $cell.find('.cell-text');
+            const $selectElement = $cell.find('select.select-for-editing');
+
+            $textDisplay.hide();
+            $selectElement.show();
+
+            const projectId = $cell.data('project-id');
+            const fieldType = $cell.data('field-type');
+            const updateUrl = $cell.data('update-url');
+            const placeholder = $cell.data('placeholder') || 'Select...';
+            const currentValueIds = ($cell.data('current-value-ids') || '').toString().split(',').filter(id => id.trim() !== '');
+
+            $selectElement.val(currentValueIds); // Set current values
+
+            let select2Options = {
+                placeholder: placeholder,
+                allowClear: false, // Adjust as needed per field
+                width: '100%'
+            };
+
+            // Field-specific Select2 configurations
+            if (fieldType === 'ingredients') {
+                select2Options.tags = true;
+                select2Options.tokenSeparators = [','];
+                select2Options.ajax = {
+                    url: '{% url "search-ingredients" %}', // Ensure this URL is correct
+                    dataType: 'json',
+                    delay: 250,
+                    data: function(params) { return { term: params.term, page: params.page }; },
+                    processResults: function(data, params) { return { results: data.results }; },
+                    cache: true
+                };
+            }
+            // Add other field-specific options if needed (e.g., minimumInputLength for AJAX)
+
+            $selectElement.select2(select2Options).on('change.editableCell select2:close.editableCell', function(event) {
+                const $thisSelect = $(this);
+                const newSelectedIds = $thisSelect.val() || []; // Ensure it's an array for .join
+                const selectedData = $thisSelect.select2('data');
+                
+                let newSelectedTexts = "None";
+                if (selectedData && selectedData.length > 0) {
+                    newSelectedTexts = selectedData.map(item => item.text.trim()).filter(text => text).map(text => `<span class="badge badge-light mr-1">${text}</span>`).join('');
+                }
+
+
+                // Only make AJAX call if data actually changed or if it's a close event (to ensure destroy)
+                // For simplicity here, we'll update on change/close if it was opened.
+                // More complex logic could compare old vs new values.
+
+                const ajaxData = {
+                    'project_id': projectId,
+                    'csrfmiddlewaretoken': csrfToken
+                };
+
+                // Prepare data key based on field type (e.g., 'deliverable_ids[]', 'ingredients[]')
+                // Inside the select2 change/close handler in your JavaScript:
+                let dataKey;
+                if (fieldType === 'ingredients') {
+                    dataKey = 'ingredients[]';
+                } else if (fieldType === 'deliverables') {
+                    dataKey = 'deliverable_ids[]';
+                } else if (fieldType === 'therapeutic_areas') { // Ensure 'therapeutic_areas' matches your data-field-type
+                    dataKey = 'therapeutic_area_ids[]';
+                } else if (fieldType === 'ingredient_categories') { // Ensure 'ingredient_categories' matches
+                    dataKey = 'ingredient_category_ids[]';
+                } else if (fieldType === 'responsible_party') { // Ensure 'responsible_party' matches
+                    dataKey = 'responsible_party_ids[]';
+                } else if (fieldType === 'route_of_admin') { // Ensure 'route_of_admin' matches
+                    dataKey = 'route_of_admin_ids[]';
+                } else if (fieldType === 'demographics') { // Ensure 'demographics' matches
+                    dataKey = 'demographics_ids[]';
+                } else {
+                    console.error('Unknown field type for AJAX dataKey:', fieldType);
+                    // Fallback or error handling if a fieldType isn't matched
+                    // (important: ensure all your data-field-types are covered in these conditionals)
+                    // You might want to destroy and revert UI here without AJAX if fieldType is unknown
+                    if ($thisSelect.data('select2')) { $thisSelect.select2('destroy'); }
+                    $thisSelect.hide(); $textDisplay.show(); $cell.removeClass('editing'); $thisSelect.off('.editableCell');
+                    if (activeSelect2Cell && activeSelect2Cell[0] === $cell[0]) { activeSelect2Cell = null; }
+                    return; // Stop further processing for unknown type
+                }
+                ajaxData[dataKey] = newSelectedIds;
+
+
+                $.ajax({
+                    type: 'POST',
+                    url: updateUrl,
+                    data: ajaxData,
+                    success: function(response) {
+                        console.log(fieldType + ' updated for project ' + projectId + ':', response);
+                        $cell.data('current-value-ids', newSelectedIds.join(','));
+                        $textDisplay.html(newSelectedTexts || '<span class="text-muted">None</span>');
+                    },
+                    error: function(response) {
+                        console.error("Error updating " + fieldType + " for project " + projectId + ":", response);
+                        // Optionally, revert text to original if update fails
+                    },
+                    complete: function() {
+                        if ($thisSelect.data('select2')) { // Check if select2 is still initialized
+                           $thisSelect.select2('destroy');
+                        }
+                        $thisSelect.hide();
+                        $textDisplay.show();
+                        $cell.removeClass('editing');
+                        $thisSelect.off('.editableCell'); // Remove these specific event handlers
+                        if (activeSelect2Cell && activeSelect2Cell[0] === $cell[0]) {
+                            activeSelect2Cell = null;
+                        }
+                    }
+                });
             });
+
+            $selectElement.select2('open'); // Open it
         });
 
-        // Demographics - from your new HTML
-        $('.select2-multiple-demographics').select2({
-            placeholder: "Select Demographics", allowClear: false, width: '100%'
-        }).on('change', function() {
-            var projectId = $(this).data('project-id');
-            var demographicsIds = $(this).val();
-            $.ajax({
-                type: 'POST', url: "{% url 'update-demographics' %}", // MAKE SURE THIS URL NAME IS CORRECT
-                data: { 'project_id': projectId, 'demographics_ids[]': demographicsIds, 'csrfmiddlewaretoken': csrfToken },
-                success: function(response) { console.log('Demographics updated:', response); },
-                error: function(xhr, status, error) { console.error('Error updating demographics:', error); }
-            });
+        // Handle clicks outside of an active select2 to close/destroy it
+        $(document).on('click', function(e) {
+            if (activeSelect2Cell && !activeSelect2Cell.is(e.target) && activeSelect2Cell.has(e.target).length === 0 && !$(e.target).closest('.select2-container').length) {
+                const $activeSelect = activeSelect2Cell.find('select.select-for-editing');
+                if ($activeSelect.data('select2')) {
+                    $activeSelect.trigger('select2:close'); // This will trigger the change/close handler above
+                }
+            }
         });
-    });
+
+        // === END: "INITIALIZE ON CLICK & DESTROY" LOGIC ===
+
+    }); // End of $(document).ready()
 </script>
 {% endblock %}

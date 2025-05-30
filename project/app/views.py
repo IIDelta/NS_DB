@@ -27,6 +27,7 @@ from .models import (
 )
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.core.cache import cache  # <--- MAKE SURE THIS IMPORT IS PRESENT
 
 
 class ProjectListView(View):
@@ -45,80 +46,40 @@ class ProjectListView(View):
             "RouteOfAdmin": request.GET.get("RouteOfAdmin"),
         }
 
-        # Query projects with filtering
-        projects = DeltekProjectID.objects.all()
-        projects = projects.order_by('projectid')
+        # ...
+        projects_query = DeltekProjectID.objects.select_related('sponsorserial')
 
         # Apply filters
         if filters["ProjectID"]:
-            projects = projects.filter(
-                projectid__icontains=filters[
-                    "ProjectID"])
+            projects_query = projects_query.filter( # CORRECTED
+                projectid__icontains=filters["ProjectID"])
         if filters["ProjectName"]:
-            projects = projects.filter(
-                projectname__icontains=filters[
-                    "ProjectName"])
+            projects_query = projects_query.filter( # CORRECTED
+                projectname__icontains=filters["ProjectName"])
         if filters["SponsorName"]:
-            projects = projects.filter(
-                sponsorserial__sponsorname__icontains=filters[
-                    "SponsorName"])
+            projects_query = projects_query.filter( # CORRECTED
+                sponsorserial__sponsorname__icontains=filters["SponsorName"])
         if filters["Deliverables"]:
-            projects = projects.filter(
-                projectdeliverables__keywordid__keyword__icontains=filters[
-                    "Deliverables"]).distinct()
+            projects_query = projects_query.filter( # CORRECTED
+                projectdeliverables__keywordid__keyword__icontains=filters["Deliverables"]).distinct()
         if filters["Status"]:
-            projects = projects.filter(
-                projectstatus__keywordid__keyword__icontains=filters[
-                    "Status"])
+            projects_query = projects_query.filter( # CORRECTED
+                projectstatus__keywordid__keyword__icontains=filters["Status"])
         if filters["TherapeuticAreas"]:
-            projects = projects.filter(
-                projecttherapeuticarea__keywordid__keyword__icontains=filters[
-                    "TherapeuticAreas"])
+            projects_query = projects_query.filter( # CORRECTED
+                projecttherapeuticarea__keywordid__keyword__icontains=filters["TherapeuticAreas"])
         if filters["IngredientCategories"]:
-            projects = projects.filter(
-                projectingredientcategory__keywordid__keyword__icontains=filters[
-                    "IngredientCategories"])
+            projects_query = projects_query.filter( # CORRECTED
+                projectingredientcategory__keywordid__keyword__icontains=filters["IngredientCategories"])
         if filters["Ingredients"]:
-            projects = projects.filter(
-                projectingredients__keywordid__icontains=filters[
-                    "Ingredients"])  # Adjusted for free text
+            projects_query = projects_query.filter( # CORRECTED
+                projectingredients__keywordid__icontains=filters["Ingredients"])
         if filters["ResponsibleParty"]:
-            projects = projects.filter(
-                projectresponsibleparty__keywordid__keyword__icontains=filters[
-                    "ResponsibleParty"])
+            projects_query = projects_query.filter( # CORRECTED
+                projectresponsibleparty__keywordid__keyword__icontains=filters["ResponsibleParty"])
         if filters["RouteOfAdmin"]:
-            projects = projects.filter(
-                projectrouteofadmin__keywordid__keyword__icontains=filters[
-                    "RouteOfAdmin"])
-
-        # Query projects with prefetching
-        # for related fields (including filters)
-        projects = projects.prefetch_related(
-            Prefetch("projectdeliverables_set",
-                     queryset=ProjectDeliverables.objects.select_related(
-                        "keywordid")),
-            Prefetch("projectstatus_set",
-                     queryset=ProjectStatus.objects.select_related(
-                        "keywordid")),
-            Prefetch("projecttherapeuticarea_set",
-                     queryset=ProjectTherapeuticArea.objects.select_related(
-                        "keywordid")),
-            Prefetch("projectingredientcategory_set",
-                     queryset=ProjectIngredientCategory.objects.select_related(
-                        "keywordid")),
-            Prefetch("projectingredients_set",
-                     queryset=ProjectIngredients.objects.all()),
-            Prefetch("projectresponsibleparty_set",
-                     queryset=ProjectResponsibleParty.objects.select_related(
-                        "keywordid")),
-            Prefetch("projectrouteofadmin_set",
-                     queryset=ProjectRouteofAdmin.objects.select_related(
-                        "keywordid")),
-            Prefetch("projectdemographics_set",
-                     queryset=ProjectDemographics.objects.select_related(
-                        "keywordid")),
-
-        )
+            projects_query = projects_query.filter( # CORRECTED
+                projectrouteofadmin__keywordid__keyword__icontains=filters["RouteOfAdmin"])
 
         # Process dynamic filters: Group filters by field type.
         filter_groups = {}
@@ -169,114 +130,132 @@ class ProjectListView(View):
                 elif field_name == 'Demographics':
                     q_obj |= Q(
                         projectdemographics__keywordid__keyword__icontains=v)
-            projects = projects.filter(q_obj)
+            projects_query = projects_query.filter(q_obj)
 
-        for project in projects:
-            if hasattr(project, '_prefetched_objects_cache'):
-                del project._prefetched_objects_cache
+        # === APPLY FINAL DISTINCT AND ORDERING HERE ===
+        # This ensures that after ALL filters (static and dynamic) are applied,
+        # Apply final distinct and ordering
+        projects_query = projects_query.distinct()
+        projects_query = projects_query.order_by('projectid')# Apply ordering AFTER distinct
+        # === END OF DISTINCT AND ORDERING FIX ===
 
-        # Get a list of project IDs from the current filtered QuerySet
-        project_ids = list(projects.values_list('projectid', flat=True))
+        # === NEW EFFICIENT PREFETCHING STRATEGY ===
+        projects_query = projects_query.prefetch_related(
+            Prefetch('projectdeliverables_set',
+                     queryset=ProjectDeliverables.objects.select_related('keywordid'), # if you need keyword text; remove select_related if only ID
+                     to_attr='_deliverables_cache'),
+            Prefetch('projectstatus_set',
+                     queryset=ProjectStatus.objects.select_related('keywordid'),
+                     to_attr='_status_cache_list'), # For project status (usually one)
+            Prefetch('projectingredients_set',
+                     queryset=ProjectIngredients.objects.all(), # keywordid is the text value
+                     to_attr='_ingredients_cache'),
+            Prefetch('projecttherapeuticarea_set',
+                     queryset=ProjectTherapeuticArea.objects.select_related('keywordid'),
+                     to_attr='_therapeutic_areas_cache'),
+            Prefetch('projectingredientcategory_set',
+                     queryset=ProjectIngredientCategory.objects.select_related('keywordid'),
+                     to_attr='_ingredient_categories_cache'),
+            Prefetch('projectresponsibleparty_set',
+                     queryset=ProjectResponsibleParty.objects.select_related('keywordid'),
+                     to_attr='_responsible_parties_cache'),
+            Prefetch('projectrouteofadmin_set',
+                     queryset=ProjectRouteofAdmin.objects.select_related('keywordid'),
+                     to_attr='_routes_of_admin_cache'),
+            Prefetch('projectdemographics_set',
+                     queryset=ProjectDemographics.objects.select_related('keywordid'),
+                     to_attr='_demographics_cache')
+        )
+        # === END OF NEW PREFETCHING STRATEGY ===
+        # Pagination logic (applies to the queryset with prefetches defined)
+        page_size_param = request.GET.get("page_size", "10")
+        actual_page_size = 0
 
-        # Manual prefetching: Query each linking table once
-        deliverables_map = {}
-        for pd in ProjectDeliverables.objects.filter(
-         projectid__in=project_ids).values('projectid', 'keywordid'):
-            deliverables_map.setdefault(
-                pd['projectid'], []).append(pd['keywordid'])
-
-        therapeutic_areas_map = {}
-        for ta in ProjectTherapeuticArea.objects.filter(
-         projectid__in=project_ids).values('projectid', 'keywordid'):
-            therapeutic_areas_map.setdefault(
-                ta['projectid'], []).append(ta['keywordid'])
-
-        ingredient_categories_map = {}
-        for ic in ProjectIngredientCategory.objects.filter(
-         projectid__in=project_ids).values('projectid', 'keywordid'):
-            ingredient_categories_map.setdefault(
-                ic['projectid'], []).append(ic['keywordid'])
-
-        ingredients_map = {}
-        for pi in ProjectIngredients.objects.filter(
-         projectid__in=project_ids).values('projectid', 'keywordid'):
-            ingredients_map.setdefault(
-                pi['projectid'], []).append(pi['keywordid'])
-
-        responsible_party_map = {}
-        for rp in ProjectResponsibleParty.objects.filter(
-         projectid__in=project_ids).values('projectid', 'keywordid'):
-            responsible_party_map.setdefault(
-                rp['projectid'], []).append(rp['keywordid'])
-
-        route_of_admin_map = {}
-        for ra in ProjectRouteofAdmin.objects.filter(
-         projectid__in=project_ids).values('projectid', 'keywordid'):
-            route_of_admin_map.setdefault(
-                ra['projectid'], []).append(ra['keywordid'])
-
-        demographics_map = {}
-        for pdemo in ProjectDemographics.objects.filter(
-         projectid__in=project_ids).values('projectid', 'keywordid'):
-            demographics_map.setdefault(
-                pdemo['projectid'], []).append(pdemo['keywordid'])
-
-        # Assign the fresh values to each project
-        for project in projects:
-            project.selected_deliverable_ids = deliverables_map.get(
-                project.projectid, [])
-            project.selected_therapeutic_areas = therapeutic_areas_map.get(
-                project.projectid, [])
-            project.selected_ingredient_category_ids = ingredient_categories_map.get(
-                project.projectid, [])
-            project.selected_ingredient_values = ingredients_map.get(
-                project.projectid, [])
-            project.selected_responsible_party_ids = responsible_party_map.get(
-                project.projectid, [])
-            project.selected_route_of_admin_ids = route_of_admin_map.get(
-                project.projectid, [])
-            project.selected_demographics_ids = demographics_map.get(
-                project.projectid, [])
-
-        page_size = request.GET.get("page_size", 10)
-        if page_size == 'all':
-            page_size = projects.count()
+        if page_size_param == 'all':
+            # For 'all', we'll set page size to total count after filters.
+            # The count() will be efficient as filters are already applied.
+            count = projects_query.count()
+            actual_page_size = count if count > 0 else 1
         else:
             try:
-                page_size = int(page_size)
+                actual_page_size = int(page_size_param)
+                if actual_page_size <= 0: actual_page_size = 10
             except ValueError:
-                page_size = 10
-
-        # Pagination logic
-        paginator = Paginator(projects, page_size)
+                actual_page_size = 10
+        
+        paginator = Paginator(projects_query, actual_page_size) # Pass the queryset
         page_number = request.GET.get("page")
-        page_obj = paginator.get_page(page_number)
+        page_obj = paginator.get_page(page_number) # Database query executes here for the current page
 
-        # Prepare context with dropdown options for each category
+        # === MODIFIED: Assign selected values ONLY for projects on the current page ===
+        for project_item in page_obj.object_list: # page_obj.object_list contains projects for the current page
+            project_item.selected_deliverable_ids = [d.keywordid_id for d in project_item._deliverables_cache]
+            
+            # Handle single status
+            status_entry = project_item._status_cache_list[0] if project_item._status_cache_list else None
+            project_item.current_status_keywordid = status_entry.keywordid_id if status_entry else None # For template logic
+
+            project_item.selected_ingredient_values = [i.keywordid for i in project_item._ingredients_cache] # keywordid is the text
+            project_item.selected_therapeutic_areas = [ta.keywordid_id for ta in project_item._therapeutic_areas_cache]
+            project_item.selected_ingredient_category_ids = [ic.keywordid_id for ic in project_item._ingredient_categories_cache]
+            project_item.selected_responsible_party_ids = [rp.keywordid_id for rp in project_item._responsible_parties_cache]
+            project_item.selected_route_of_admin_ids = [ra.keywordid_id for ra in project_item._routes_of_admin_cache]
+            project_item.selected_demographics_ids = [d.keywordid_id for d in project_item._demographics_cache]
+        # === END OF MODIFIED ASSIGNMENT LOOP ===
+
+        # --- Caching for Keyword Dropdown Lists ---
+        # Cache for 1 hour (3600 seconds), adjust as needed, or use None for default timeout
+        cache_timeout = 3600 
+
+        status_keywords = cache.get('status_keywords_list')
+        if not status_keywords: # Or 'if status_keywords is None:' to be more precise for empty lists
+            status_keywords = list(ProjectStatusKeyword.objects.all()) # Convert to list
+            cache.set('status_keywords_list', status_keywords, timeout=cache_timeout)
+
+        deliverables_keywords = cache.get('deliverables_keywords_list')
+        if not deliverables_keywords:
+            deliverables_keywords = list(DeliverablesKeyword.objects.all())
+            cache.set('deliverables_keywords_list', deliverables_keywords, timeout=cache_timeout)
+
+        therapeutic_area_keywords = cache.get('therapeutic_area_keywords_list')
+        if not therapeutic_area_keywords:
+            therapeutic_area_keywords = list(TherapeuticAreaKeyword.objects.all())
+            cache.set('therapeutic_area_keywords_list', therapeutic_area_keywords, timeout=cache_timeout)
+        
+        ingredient_category_keywords = cache.get('ingredient_category_keywords_list')
+        if not ingredient_category_keywords:
+            ingredient_category_keywords = list(IngredientCategoryKeyword.objects.all())
+            cache.set('ingredient_category_keywords_list', ingredient_category_keywords, timeout=cache_timeout)
+
+        responsible_party_keywords = cache.get('responsible_party_keywords_list')
+        if not responsible_party_keywords:
+            responsible_party_keywords = list(ResponsiblePartyKeyword.objects.all())
+            cache.set('responsible_party_keywords_list', responsible_party_keywords, timeout=cache_timeout)
+
+        route_of_admin_keywords = cache.get('route_of_admin_keywords_list')
+        if not route_of_admin_keywords:
+            route_of_admin_keywords = list(RouteofAdminKeyword.objects.all())
+            cache.set('route_of_admin_keywords_list', route_of_admin_keywords, timeout=cache_timeout)
+
+        demographics_keywords = cache.get('demographics_keywords_list')
+        if not demographics_keywords:
+            demographics_keywords = list(DemographicsKeyword.objects.all())
+            cache.set('demographics_keywords_list', demographics_keywords, timeout=cache_timeout)
+        # --- End of Caching for Keyword Dropdown Lists ---
+
         context = {
-            "projects": page_obj,
+            "projects": page_obj, # page_obj now contains projects with processed attributes
             "filters": filters,
-            "status_keywords":
-                ProjectStatusKeyword.objects.all(),
-            "deliverables_keywords":
-                DeliverablesKeyword.objects.all(),
-            # Deliverable keywords
-            "therapeutic_area_keywords":
-                TherapeuticAreaKeyword.objects.all(),
-            "ingredient_category_keywords":
-                IngredientCategoryKeyword.objects.all(),
-            "responsible_party_keywords":
-                ResponsiblePartyKeyword.objects.all(),
-            "route_of_admin_keywords":
-                RouteofAdminKeyword.objects.all(),
-            "demographics_keywords":
-                DemographicsKeyword.objects.all(),
-            "page_size": page_size,
-            # Pass the selected page size to the template
-
+            "status_keywords": ProjectStatusKeyword.objects.all(),
+            "deliverables_keywords": DeliverablesKeyword.objects.all(),
+            "therapeutic_area_keywords": TherapeuticAreaKeyword.objects.all(),
+            "ingredient_category_keywords": IngredientCategoryKeyword.objects.all(),
+            "responsible_party_keywords": ResponsiblePartyKeyword.objects.all(),
+            "route_of_admin_keywords": RouteofAdminKeyword.objects.all(),
+            "demographics_keywords": DemographicsKeyword.objects.all(),
+            "page_size": page_size_param,
         }
 
-        # Persist current GET parameters (except 'page') for pagination links
         query_params = request.GET.copy()
         if 'page' in query_params:
             query_params.pop('page')
@@ -614,8 +593,9 @@ class FilteredProjectListView(View):
                     "Questionnaires"]
             ).distinct()
 
-        # --- Now projects_query contains ALL applied filters ---
+        projects_query = projects_query.distinct()
 
+        # --- Now projects_query contains ALL applied filters ---
         # --- Manual Prefetching/Data Assignment ---
         # Get IDs from the *final* filtered queryset
         final_project_ids = list(
